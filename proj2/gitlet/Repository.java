@@ -1,17 +1,16 @@
 package gitlet;
 
+import gitlet.models.Blob;
 import gitlet.models.Branch;
 import gitlet.models.Commit;
+import gitlet.models.StagingArea;
 import gitlet.utils.Utils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 
-import static gitlet.helpers.HEADHelper.persistHEAD;
 import static gitlet.utils.Constants.*;
-
-// TODO: any imports you need here
 
 /**
  * Represents a gitlet repository.
@@ -21,22 +20,9 @@ import static gitlet.utils.Constants.*;
  * @author TODO
  */
 public class Repository {
-  /**
-   * TODO: add instance variables here.
-   * <p>
-   * List all instance variables of the Repository class here with a useful
-   * comment above them describing what that variable represents and how that
-   * variable is used. We've provided two examples for you.
-   */
 
   private Branch currentBranch;
-
-  // HEAD contains the path to the current branch's hash number of the HEAD commit. Currently, as HEAD-detached mode is not supported
-  // HEAD points to the tip commit of the current branch
-  // example: refs/heads/master
-
-  // private String HEAD = PointerHelper.loadHEAD();
-  // private Branch currentBranch = PointerHelper.loadCurrentBranch();
+  private StagingArea stagingArea;
 
   /**
    * - .gitlet
@@ -52,73 +38,63 @@ public class Repository {
    *        - <other branch name>
    */
 
+
   /**
    * The current working directory.
    */
   public Repository() {
-
+    if (gitletExists()) {
+      // load the staging area
+      this.stagingArea = Utils.readObject(STAGING_INDEX, StagingArea.class);
+      this.currentBranch = getCurrentBranch();
+    } else {
+      this.stagingArea = new StagingArea();
+    }
   }
 
-  /**
-   * this method should be called after initializeRepository
-   * A branch is represented by
-   *  - its log
-   *  - the reference to its tip
-   *
-   * -.gitlet
-   *    -objects
-   *    -refs
-   *        -heads
-   *           -master(f): <hash of the tip commit>
-   *    -logs
-   *        -master(f)
-   *    -HEAD(f) : /Users/...../refs/heads/master
-   */
-  public void initializeRepository() throws IOException {
-    makeDirectory();
-    createBranchMaster();
-
-    // Update Repository Status
-    persistRepositoryStatus();
-  }
-
-  private void persistRepositoryStatus() {
-    // Pointer HEAD to the tip commit of the branch
-    persistHEAD(currentBranch);
-  }
-
-  /**
-   * Load the repository status from the .gitlet directory
-   */
-  private void loadRepository() {
-
-    //
-  }
-
-  /**
-   * @return
-   */
-  private Branch getCurrentBranch() {
-    String CurrenBranchPath = Utils.readContentsAsString(HEAD_FILE);
-    String CurrentBranchTipCommitHash = Utils.readContentsAsString(new File(CurrenBranchPath));
-
-    String currentBranchName = CurrenBranchPath.split(File.pathSeparator)[CurrenBranchPath.split(File.pathSeparator).length - 1];
-    return new Branch(currentBranchName, CurrentBranchTipCommitHash);
-  }
-
-  public boolean gitletExists() {
-    return GITLET_DIR.exists();
+  // TODO : implement a advance filesystem-based storage system
+  private static void persistCommit(Commit commit) {
+    Utils.writeObject(Utils.join(OBJECTS_DIR, Utils.sha1(commit.sha1Data())), commit);
   }
 
   // Create a new .gitlet directory in the current directory.
   // Inside .gitlet, create objects, refs directories and HEAD and logs files
+
+  /**
+   * this method should be called after initializeRepository
+   * A branch is represented by
+   * - its log
+   * - the reference to its tip
+   * <p>
+   * -.gitlet
+   * -objects
+   * -refs
+   * -heads
+   * -master(f): <hash of the tip commit>
+   * -logs
+   * -master(f)
+   * -HEAD(f) : /Users/...../refs/heads/master
+   * -index(f) : staging area
+   */
+  public void initializeRepository() throws IOException {
+    makeDirectory();
+    createBranchMaster();
+    persistHEAD(currentBranch);
+    stagingArea.persist();
+  }
+
+  private void persistHEAD(Branch currentBranch) {
+    Utils.writeContents(HEAD_FILE, Utils.join(REFS_HEADS_DIR, currentBranch.getName()).toString());
+  }
+
   /**
    * -.gitlet
-   *    -objects
-   *    -refs
-   *        -heads
-   *    -logs
-   *    -HEAD(f)
+   * -objects
+   * -refs
+   * -heads
+   * -logs
+   * -HEAD(f)
+   * -index(f)
    */
 
   private void makeDirectory() throws IOException {
@@ -128,6 +104,7 @@ public class Repository {
     REFS_HEADS_DIR.mkdir();
     LOGS_DIR.mkdir();
     HEAD_FILE.createNewFile();
+    STAGING_INDEX.createNewFile();
   }
 
   public void createBranchMaster() throws IOException {
@@ -146,21 +123,27 @@ public class Repository {
     Utils.join(LOGS_DIR, MASTER).createNewFile();
   }
 
-  // TODO : implement a advance filesystem-based storage system
-  private static void persistCommit(Commit commit) {
-    Utils.writeObject(Utils.join(OBJECTS_DIR, Utils.sha1(commit.sha1Data())), commit);
+  private Branch getCurrentBranch() {
+    String CurrenBranchPath = Utils.readContentsAsString(HEAD_FILE);
+    String CurrentBranchTipCommitHash = Utils.readContentsAsString(new File(CurrenBranchPath));
+
+    String currentBranchName = CurrenBranchPath.split(File.pathSeparator)[CurrenBranchPath.split(File.pathSeparator).length - 1];
+    return new Branch(currentBranchName, CurrentBranchTipCommitHash);
   }
 
-  public void createABranch(String name) {
-    // Check if the branch need to be created has already existed
-
-
+  public boolean gitletExists() {
+    return GITLET_DIR.exists();
   }
 
-  public void createACommit(String message) {
+  public void stage(String fileName) {
+    Blob blob = new Blob(fileName, Utils.readContentsAsString(Utils.join(CWD, fileName)));
 
+    String blobHash = Utils.sha1(blob);
+    Utils.writeObject(Utils.join(OBJECTS_DIR, blobHash), blob);
+
+    stagingArea.add(blob.getFileName(), blobHash );
+    stagingArea.persist();
   }
-
 
   /* TODO: fill in the rest of this class. */
 }

@@ -1,6 +1,10 @@
 package gitlet;
 
+import gitlet.utils.Utils;
+
 import java.io.IOException;
+
+import static gitlet.utils.Constants.CWD;
 
 /**
  * @className: Service
@@ -65,7 +69,15 @@ public class Command {
    * @param fileName
    */
   public static void add(String fileName) {
-    System.out.println("add");
+    boolean anyMatch = Utils.plainFilenamesIn(CWD).stream().anyMatch(name -> name.equals(fileName));
+
+    if (!anyMatch) {
+      System.out.println("File does not exist.");
+    } else {
+      repository.stage(fileName);
+
+      // TODO : persist the staging area
+    }
   }
 
   public static void commit(String message) {
@@ -77,6 +89,28 @@ public class Command {
 
     // Write back to the disk any new objects created and any modified read from the disk
     System.out.println("commit");
+  }
+
+  /**
+   * Usage: java gitlet.Main rm [file name]
+   * <p>
+   * Description: Unstage the file if it is currently staged for addition.
+   * If the file is tracked in the current commit, mark it to indicate that it is not to be included in the next commit, and remove the file from the working directory if the user has not already done so (do not remove it unless it is tracked in the current commit).
+   * The file will no longer be staged for addition (see gitlet add), if it was at the time of the command.
+   * <p>
+   * Runtime: Should be constant relative to any significant measure.
+   * <p>
+   * Failure cases: If the file is neither staged nor tracked by the head commit, print the error message No reason to remove the file.
+   * If the file is tracked by the head commit and staged for addition, remove the file from the staging area (but not from the working directory) and print the error message Failed to unstage file.
+   * <p>
+   * Dangerous?: No
+   * <p>
+   * Our line count: ~15
+   *
+   * @param fileName
+   */
+  public static void status() {
+
   }
 
   /**

@@ -1,0 +1,28 @@
+name: Makefile CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Print current directory and change to testing directory
+      run: |
+        pwd
+        ls
+      
+    - name: Install dependencies
+      run: make
+      working-directory: proj2/testing
+
+    - name: Run check
+      run: make check
+      working-directory: proj2/testing

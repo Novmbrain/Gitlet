@@ -61,8 +61,14 @@ public class Commit implements Serializable {
     return parent;
   }
 
-
   public Object[] sha1Data() {
     return new Object[]{message, timeStamp.toString(), Utils.serialize(fileNameToBlobHash), parent};
+  }
+
+  public Commit clone() {
+    Commit commit = new Commit(message, timeStamp);
+    commit.fileNameToBlobHash = fileNameToBlobHash;
+    commit.parent = parent;
+    return commit;
   }
 }

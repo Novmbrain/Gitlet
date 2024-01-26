@@ -1,10 +1,8 @@
 package gitlet;
 
-import gitlet.utils.Utils;
-
 import java.io.IOException;
 
-import static gitlet.utils.Constants.CWD;
+import static gitlet.Repository.isFileExistInRepository;
 
 /**
  * @className: Service
@@ -41,7 +39,9 @@ public class Command {
       System.out.println("A Gitlet version-control system already exists in the current directory.");
     } else {
       try {
-        repository.initializeRepository();
+        // Read from the disk the head commit and the staging area status
+
+        repository.init();
       } catch (IOException e) {
         System.out.println("Error when creating the .gitlet directory");
       }
@@ -69,26 +69,21 @@ public class Command {
    * @param fileName
    */
   public static void add(String fileName) {
-    boolean anyMatch = Utils.plainFilenamesIn(CWD).stream().anyMatch(name -> name.equals(fileName));
-
-    if (!anyMatch) {
+    if (!isFileExistInRepository(fileName)) {
       System.out.println("File does not exist.");
     } else {
       repository.stage(fileName);
-
-      // TODO : persist the staging area
     }
   }
 
+
+
   public static void commit(String message) {
-    // Read from the disk the head commit and the staging area status
-
-    // Create a new commit object by cloning the head commit
-    // Update the new commit object's metatdata(message, timestamp, parent, author)
-    // Use the staging area to update the new commit object's "file name to blob map"
-
-    // Write back to the disk any new objects created and any modified read from the disk
-    System.out.println("commit");
+    if (message.isEmpty()) {
+      System.out.println("Please enter a commit message.");
+    } else {
+      repository.commit(message);
+    }
   }
 
   /**
@@ -121,4 +116,5 @@ public class Command {
   public static void branch(String name) {
 
   }
+
 }

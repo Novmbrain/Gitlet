@@ -4,6 +4,8 @@ import gitlet.utils.Utils;
 
 import java.io.Serializable;
 
+import static gitlet.utils.Constants.OBJECTS_DIR;
+
 /**
  * @className: Blob
  * @description: Blob is a file that is stored in the .gitlet/objects directory. It is uniquely identified by the sha1 hash of its contents.
@@ -19,6 +21,7 @@ public class Blob implements Serializable {
   public Blob(String fileName, String content) {
     this.fileName = fileName;
     this.content = content;
+    // Two files that have different names but the same content will have different sha1 hash
     this.fileHash = Utils.sha1(fileName, content);
   }
 
@@ -32,5 +35,13 @@ public class Blob implements Serializable {
 
   public String getContent() {
     return content;
+  }
+
+  public String sha1Hash() {
+    return Utils.sha1(fileName, content, fileHash);
+  }
+
+  public void persist() {
+    Utils.writeObject(Utils.join(OBJECTS_DIR, this.sha1Hash()), this);
   }
 }

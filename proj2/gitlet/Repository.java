@@ -57,26 +57,10 @@ public class Repository {
     Utils.writeObject(Utils.join(OBJECTS_DIR, Utils.sha1(commit.sha1Data())), commit);
   }
 
-  // Create a new .gitlet directory in the current directory.
-  // Inside .gitlet, create objects, refs directories and HEAD and logs files
-
-  /**
-   * this method should be called after initializeRepository
-   * A branch is represented by
-   * - its log
-   * - the reference to its tip
-   * <p>
-   * -.gitlet
-   * -objects
-   * -refs
-   * -heads
-   * -master(f): <hash of the tip commit>
-   * -logs
-   * -master(f)
-   * -HEAD(f) : /Users/...../refs/heads/master
-   * -index(f) : staging area
-   */
-  public void initializeRepository() throws IOException {
+  /** Create a new .gitlet directory in the current directory.
+   * Inside .gitlet, create objects, refs directories and HEAD and logs files
+   * */
+  public void init() throws IOException {
     makeDirectory();
     createBranchMaster();
     persistHEAD(currentBranch);
@@ -86,16 +70,6 @@ public class Repository {
   private void persistHEAD(Branch currentBranch) {
     Utils.writeContents(HEAD_FILE, Utils.join(REFS_HEADS_DIR, currentBranch.getName()).toString());
   }
-
-  /**
-   * -.gitlet
-   * -objects
-   * -refs
-   * -heads
-   * -logs
-   * -HEAD(f)
-   * -index(f)
-   */
 
   private void makeDirectory() throws IOException {
     GITLET_DIR.mkdir();
@@ -136,14 +110,45 @@ public class Repository {
   }
 
   public void stage(String fileName) {
-    Blob blob = new Blob(fileName, Utils.readContentsAsString(Utils.join(CWD, fileName)));
+    // TODO: If the current working version of the file is identical to the version in the current commit, do not stage it to be added, and remove it from the staging area if it is already there (as can happen when a file is changed, added, and then changed back to it’s original version).
+    // TODO: The file will no longer be staged for removal (see gitlet rm), if it was at the time of the command.
 
-    String blobHash = Utils.sha1(blob);
-    Utils.writeObject(Utils.join(OBJECTS_DIR, blobHash), blob);
+    // check if the file is already staged
+    if (stagingArea.contains(fileName)) {
+      // if the file is identical to the on in staging area, do not stage it to be added
+      if (stagingArea.checkIdentical(fileName)) {
+        return;
+      } else {
+        // if the file is already staged, remove it from the staging area and .gitlet/objects
+        stagingArea.remove(fileName);
+      }
+    }
 
-    stagingArea.add(blob.getFileName(), blobHash );
+    Blob blob = new Blob(fileName, readFileFromRepositoryAsString(fileName));
+    blob.persist();
+
+    stagingArea.add(blob.getFileName(), blob.sha1Hash());
     stagingArea.persist();
   }
 
-  /* TODO: fill in the rest of this class. */
+  private static String readFileFromRepositoryAsString(String fileName) {
+    return Utils.readContentsAsString(Utils.join(CWD, fileName));
+  }
+
+  public static boolean isFileExistInRepository(String fileName) {
+    return Utils.plainFilenamesIn(CWD).stream().anyMatch(name -> name.equals(fileName));
+  }
+
+  public void commit(String message) {
+    // Create a new commit object by cloning the head commit
+    // Commit newCommit = new Commit(message, new Date(), currentBranch.getTipCommit());
+    // Update the new commit object's metatdata(message, timestamp, parent, author)
+
+      this.clearStagingArea();
+    // Write back to the disk any new objects created and any modified read from the disk
+  }
+
+  public void clearStagingArea() {
+    stagingArea.clear();
+  }
 }

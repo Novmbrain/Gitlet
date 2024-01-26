@@ -15,8 +15,10 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Print current directory and change to testing directory
-      run: pwd
-
+      run: |
+        pwd
+        ls
+      
     - name: Install dependencies
       run: make
       working-directory: ./testing

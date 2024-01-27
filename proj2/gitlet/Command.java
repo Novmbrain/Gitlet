@@ -77,7 +77,27 @@ public class Command {
   }
 
 
-
+  /*
+    * Usage: java gitlet.Main commit [message]
+    * <p>
+    * Description: Saves a snapshot of certain files in the current commit and staging area so they can be restored at a later time, creating a new commit.
+    * The commit is said to be tracking the saved files. By default, each commit’s snapshot of files will be exactly the same as its parent commit’s snapshot of files;
+    * it will keep versions of files exactly as they are, and not update them. A commit will only update the contents of files it is tracking that have been staged for addition at the time of commit,
+    * in which case the commit will now include the version of the file that was staged instead of the version it got from its parent.
+    * A commit will save and start tracking any files that were staged for addition but weren’t tracked by its parent. Finally, files tracked in the current commit may be untracked in the new commit as a result being staged for removal by the rm command (below).
+    * <p>
+    * Runtime: Should be linear with respect to the total size of the files being committed.
+    * <p>
+    * Failure cases: If no files have been staged, aborts. Otherwise, it creates a new commit with the files in the staging area as tracked files.
+    * The commit’s parent is the current head commit. The commit timestamp is the current time.
+    * The commit message is the input message. The commit will be saved in the .gitlet/commits directory.
+    * The current branch head will be updated to point to this new commit, and the staging area will be cleared.
+    * <p>
+    * Dangerous?: No
+    * <p>
+    * Our line count: ~15
+    * @param message
+   */
   public static void commit(String message) {
     if (message.isEmpty()) {
       System.out.println("Please enter a commit message.");
@@ -86,24 +106,11 @@ public class Command {
     }
   }
 
-  /**
-   * Usage: java gitlet.Main rm [file name]
-   * <p>
-   * Description: Unstage the file if it is currently staged for addition.
-   * If the file is tracked in the current commit, mark it to indicate that it is not to be included in the next commit, and remove the file from the working directory if the user has not already done so (do not remove it unless it is tracked in the current commit).
-   * The file will no longer be staged for addition (see gitlet add), if it was at the time of the command.
-   * <p>
-   * Runtime: Should be constant relative to any significant measure.
-   * <p>
-   * Failure cases: If the file is neither staged nor tracked by the head commit, print the error message No reason to remove the file.
-   * If the file is tracked by the head commit and staged for addition, remove the file from the staging area (but not from the working directory) and print the error message Failed to unstage file.
-   * <p>
-   * Dangerous?: No
-   * <p>
-   * Our line count: ~15
-   *
-   * @param fileName
-   */
+
+  public static void log() {
+    repository.log();
+  }
+
   public static void status() {
 
   }

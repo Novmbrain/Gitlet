@@ -29,5 +29,7 @@ public class Constants {
   public static final File REFS_HEADS_MASTER = Utils.join(REFS_HEADS_DIR, MASTER);
 
 
-  //TODO: Add all error messages here
+  // TODO: Add all error messages here -> replace all sout by throw GitletException
+  // public static final GitletException exception1 = new GitletException("exception");
+
 }

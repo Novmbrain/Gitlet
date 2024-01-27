@@ -1,10 +1,7 @@
 package gitlet.models;
 
+import gitlet.utils.ObjectsHelper;
 import gitlet.utils.Utils;
-
-import java.io.Serializable;
-
-import static gitlet.utils.Constants.OBJECTS_DIR;
 
 /**
  * @className: Blob
@@ -13,7 +10,7 @@ import static gitlet.utils.Constants.OBJECTS_DIR;
  * @author: Wenjie FU
  * @date: 25/01/2024
  **/
-public class Blob implements Serializable, Hashable {
+public class Blob extends GitletObject {
   private String fileName;
   private String fileHash;
   private String content;
@@ -43,6 +40,6 @@ public class Blob implements Serializable, Hashable {
   }
 
   public void persist() {
-    Utils.writeObject(Utils.join(OBJECTS_DIR, this.sha1Hash()), this);
+    ObjectsHelper.persistObject(this.sha1Hash(), this);
   }
 }

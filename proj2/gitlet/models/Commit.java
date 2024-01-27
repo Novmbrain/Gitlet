@@ -1,16 +1,13 @@
 package gitlet.models;
 
-// TODO: any imports you need here
 
+import gitlet.utils.ObjectsHelper;
 import gitlet.utils.Utils;
 
-import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 
-import static gitlet.utils.Constants.OBJECTS_DIR;
-
-public class Commit implements Serializable, Hashable {
+public class Commit extends GitletObject {
   /**
    * TODO: add instance variables here.
    *
@@ -34,7 +31,7 @@ public class Commit implements Serializable, Hashable {
   /**
    * * The parent commit of a commit object
    */
-  private String parent = "";
+  private String parentHash = "";
 
   public Commit(String message, Date timeStamp) {
     this.message = message;
@@ -54,39 +51,43 @@ public class Commit implements Serializable, Hashable {
     return fileNameToBlobHash;
   }
 
-  public String getParent() {
-    return parent;
+  public String getParentHash() {
+    return parentHash;
   }
 
   /**
    * this method build the next commit
+   *
    * @param message
    * @return
    */
   public Commit buildNext(String message) {
     Commit commit = new Commit(message, new Date());
     commit.fileNameToBlobHash = fileNameToBlobHash;
-    commit.parent = this.sha1Hash();
+    commit.parentHash = this.sha1Hash();
     return commit;
   }
 
   @Override
   public String sha1Hash() {
-    return Utils.sha1(message, timeStamp.toString(), Utils.serialize(fileNameToBlobHash), parent);
+    return Utils.sha1(message, timeStamp.toString(), Utils.serialize(fileNameToBlobHash), parentHash);
   }
 
   public void persist() {
-    Utils.writeObject(Utils.join(OBJECTS_DIR, this.sha1Hash()), this);
+    ObjectsHelper.persistObject(this.sha1Hash(), this);
   }
 
   public void updateIndex(StagingArea stagingArea) {
     HashMap<String, String> stagedBlobs = stagingArea.getStagedBlobs();
     for (String fileName : stagedBlobs.keySet()) {
-        // if file name doest not exists in fileNameToBlobMap -> add it. Otherwise -> replace it
-        fileNameToBlobHash.put(fileName, stagedBlobs.get(fileName));
+      // if file name doest not exists in fileNameToBlobMap -> add it. Otherwise -> replace it
+      fileNameToBlobHash.put(fileName, stagedBlobs.get(fileName));
 
-        // TODO: deal with the case "stage for removal"
+      // TODO: deal with the case "stage for removal"
     }
+  }
 
+  public Commit getParentCommit() {
+    return ObjectsHelper.getCommit(parentHash);
   }
 }

@@ -154,4 +154,16 @@ public class Repository {
     stagingArea.persist();
     currentBranch.persist();
   }
+
+  public void log() {
+    Commit commit = this.HEAD.getHEADCommit();
+    while (commit != null) {
+      System.out.println("===");
+      System.out.println("commit " + commit.sha1Hash());
+      System.out.println("Date: " + commit.getTimeStamp());
+      System.out.println(commit.getMessage());
+      System.out.println();
+      commit = commit.getParentCommit();
+    }
+  }
 }

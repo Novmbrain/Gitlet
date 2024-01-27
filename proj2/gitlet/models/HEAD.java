@@ -7,12 +7,12 @@ package gitlet.models;
  * @date: 26/01/2024
  **/
 
+import gitlet.utils.ObjectsHelper;
 import gitlet.utils.Utils;
 
 import java.io.File;
 
 import static gitlet.utils.Constants.HEAD_FILE;
-import static gitlet.utils.Constants.OBJECTS_DIR;
 
 /**
  * singleton HEAD
@@ -25,7 +25,7 @@ public class HEAD {
   private HEAD() {
     this.HEADCommitPath = Utils.readContentsAsString(HEAD_FILE);
     String HEADCommitHash = Utils.readContentsAsString(new File(HEADCommitPath));
-    this.HEADCommit = Utils.readObject(Utils.join(OBJECTS_DIR, HEADCommitHash), Commit.class);
+    this.HEADCommit = ObjectsHelper.getCommit(HEADCommitHash);
   }
 
   public Commit getHEADCommit() {

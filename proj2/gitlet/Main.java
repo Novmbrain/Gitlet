@@ -30,13 +30,13 @@ public class Main {
      * If a user inputs a command that requires being in an initialized Gitlet working directory (i.e., one containing a .gitlet subdirectory),
      * but is not in such a directory, print the message Not in an initialized Gitlet directory.
      */
-    String firstArg = args[0];
+    String commandType = args[0];
 
-    if (firstArg.equals("init")) {
+    if (commandType.equals("init")) {
       Command.init();
     } else {
-      //TODO: check if .gitlet exists
-      switch (firstArg) {
+      // TODO: check if .gitlet exists
+      switch (commandType) {
         case "add":
           String fileName = args[1];
           Command.add(fileName);
@@ -44,6 +44,10 @@ public class Main {
         case "commit":
           String commitMessage = args[1];
           Command.commit(commitMessage);
+          break;
+        case "log":
+          Command.log();
+          break;
       }
     }
   }

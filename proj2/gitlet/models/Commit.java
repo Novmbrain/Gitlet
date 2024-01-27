@@ -90,4 +90,8 @@ public class Commit extends GitletObject {
   public Commit getParentCommit() {
     return ObjectsHelper.getCommit(parentHash);
   }
+
+  public boolean isInitialCommit() {
+    return parentHash.equals("");
+  }
 }

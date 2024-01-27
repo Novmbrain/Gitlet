@@ -159,13 +159,17 @@ public class Repository {
 
   public void log() {
     Commit commit = this.HEAD.getHEADCommit();
-    while (commit != null) {
+    while (true) {
       System.out.println("===");
       System.out.println("commit " + commit.sha1Hash());
       System.out.println("Date: " + commit.getTimeStamp());
       System.out.println(commit.getMessage());
       System.out.println();
-      commit = commit.getParentCommit();
+      if (commit.isInitialCommit()){
+        break;
+      } else  {
+        commit = commit.getParentCommit();
+      }
     }
   }
 }

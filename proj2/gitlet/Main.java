@@ -38,10 +38,12 @@ public class Main {
       //TODO: check if .gitlet exists
       switch (firstArg) {
         case "add":
-          Command.add(args[1]);
+          String fileName = args[1];
+          Command.add(fileName);
           break;
         case "commit":
-          Command.commit("");
+          String commitMessage = args[1];
+          Command.commit(commitMessage);
       }
     }
   }

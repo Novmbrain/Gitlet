@@ -1,9 +1,6 @@
 package gitlet;
 
-import gitlet.models.Blob;
-import gitlet.models.Branch;
-import gitlet.models.Commit;
-import gitlet.models.StagingArea;
+import gitlet.models.*;
 import gitlet.utils.Utils;
 
 import java.io.File;
@@ -21,8 +18,10 @@ import static gitlet.utils.Constants.*;
  */
 public class Repository {
 
+  private HEAD HEAD;
   private Branch currentBranch;
   private StagingArea stagingArea;
+
 
   /**
    * - .gitlet
@@ -47,14 +46,10 @@ public class Repository {
       // load the staging area
       this.stagingArea = Utils.readObject(STAGING_INDEX, StagingArea.class);
       this.currentBranch = getCurrentBranch();
+      this.HEAD = HEAD.getInstance();
     } else {
       this.stagingArea = new StagingArea();
     }
-  }
-
-  // TODO : implement a advance filesystem-based storage system
-  private static void persistCommit(Commit commit) {
-    Utils.writeObject(Utils.join(OBJECTS_DIR, Utils.sha1(commit.sha1Data())), commit);
   }
 
   /** Create a new .gitlet directory in the current directory.
@@ -84,13 +79,14 @@ public class Repository {
   public void createBranchMaster() throws IOException {
     // Create and persist the initial initialCommit
     Commit initialCommit = new Commit(INITIAL_COMMIT_MESSAGE, new Date(0));
-    persistCommit(initialCommit);
+    initialCommit.persist();
 
     // Create branch master
     REFS_HEADS_MASTER.createNewFile();
     Branch master = new Branch(MASTER);
     // pointer master to the first initialCommit,
     master.setTipCommit(initialCommit);
+    master.persist();
     this.currentBranch = master;
 
     // Create a file named master in logs to store the log records of changes made to the master branch
@@ -140,15 +136,22 @@ public class Repository {
   }
 
   public void commit(String message) {
-    // Create a new commit object by cloning the head commit
-    // Commit newCommit = new Commit(message, new Date(), currentBranch.getTipCommit());
-    // Update the new commit object's metatdata(message, timestamp, parent, author)
+    if (stagingArea.isEmpty()) {
+      System.out.println("No changes added to the commit.");
+    }
 
-      this.clearStagingArea();
-    // Write back to the disk any new objects created and any modified read from the disk
-  }
+    // Create a new commit object by cloning the head commit. As gitlet don't support detached head mode
+    // So, the HEAD also points to the tip commit of current branch.
+    Commit newCommit = this.HEAD.getHEADCommit().buildNext(message);
+    newCommit.updateIndex(stagingArea);
+    newCommit.persist();
 
-  public void clearStagingArea() {
     stagingArea.clear();
+    currentBranch.setTipCommit(newCommit);
+
+    // Write back to the disk any new objects created and any modified read from the disk
+    // TODO: considering extracting this part as method of repository call persistRepository*()
+    stagingArea.persist();
+    currentBranch.persist();
   }
 }

@@ -13,7 +13,7 @@ import static gitlet.utils.Constants.OBJECTS_DIR;
  * @author: Wenjie FU
  * @date: 25/01/2024
  **/
-public class Blob implements Serializable {
+public class Blob implements Serializable, Hashable {
   private String fileName;
   private String fileHash;
   private String content;
@@ -37,6 +37,7 @@ public class Blob implements Serializable {
     return content;
   }
 
+  @Override
   public String sha1Hash() {
     return Utils.sha1(fileName, content, fileHash);
   }

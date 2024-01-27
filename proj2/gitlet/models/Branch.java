@@ -34,11 +34,10 @@ public class Branch {
   }
 
   public void setTipCommit(Commit commit) {
-    this.tipHash = Utils.sha1(commit.sha1Data());
-    persistBranchTip();
+    this.tipHash = commit.sha1Hash();
   }
 
-  private void persistBranchTip() {
+  public void persist() {
     Utils.writeContents(Utils.join(REFS_HEADS_DIR, name), tipHash);
   }
 }

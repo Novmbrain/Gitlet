@@ -16,6 +16,10 @@ import static gitlet.utils.Constants.*;
  **/
 public class StagingArea implements Serializable {
 
+  public HashMap<String, String> getStagedBlobs() {
+    return stagedBlobs;
+  }
+
   /**
    * A HashMap that maps file name to blob hash
    */
@@ -56,5 +60,9 @@ public class StagingArea implements Serializable {
   public void clear() {
     stagedBlobs.clear();
     removedBlobs.clear();
+  }
+
+  public boolean isEmpty() {
+    return stagedBlobs.isEmpty() || removedBlobs.isEmpty();
   }
 }

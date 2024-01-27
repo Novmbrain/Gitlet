@@ -64,6 +64,6 @@ public class StagingArea implements Serializable {
   }
 
   public boolean isEmpty() {
-    return stagedBlobs.isEmpty() || removedBlobs.isEmpty();
+    return stagedBlobs.isEmpty() && removedBlobs.isEmpty();
   }
 }

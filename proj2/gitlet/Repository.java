@@ -94,11 +94,13 @@ public class Repository {
   }
 
   private Branch getCurrentBranch() {
-    String CurrenBranchPath = Utils.readContentsAsString(HEAD_FILE);
-    String CurrentBranchTipCommitHash = Utils.readContentsAsString(new File(CurrenBranchPath));
+    String currenBranchPath = Utils.readContentsAsString(HEAD_FILE);
+    String currentBranchTipCommitHash = Utils.readContentsAsString(new File(currenBranchPath));
 
-    String currentBranchName = CurrenBranchPath.split(File.pathSeparator)[CurrenBranchPath.split(File.pathSeparator).length - 1];
-    return new Branch(currentBranchName, CurrentBranchTipCommitHash);
+    String[] splitPath = currenBranchPath.split(File.separator);
+    String currentBranchName = splitPath[splitPath.length - 1];
+
+    return new Branch(currentBranchName, currentBranchTipCommitHash);
   }
 
   public boolean gitletExists() {

@@ -92,6 +92,6 @@ public class Commit extends GitletObject {
   }
 
   public boolean isInitialCommit() {
-    return parentHash.equals("");
+    return parentHash.isEmpty();
   }
 }

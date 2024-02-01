@@ -18,7 +18,7 @@ import static gitlet.utils.Constants.*;
  */
 public class Repository {
 
-  private HEAD HEAD;
+  private HEAD head;
   private Branch currentBranch;
   private StagingArea stagingArea;
 
@@ -46,15 +46,24 @@ public class Repository {
       // load the staging area
       this.stagingArea = Utils.readObject(STAGING_INDEX, StagingArea.class);
       this.currentBranch = getCurrentBranch();
-      this.HEAD = HEAD.getInstance();
+      this.head = HEAD.getInstance();
     } else {
       this.stagingArea = new StagingArea();
     }
   }
 
-  /** Create a new .gitlet directory in the current directory.
+  private static String readFileFromRepositoryAsString(String fileName) {
+    return Utils.readContentsAsString(Utils.join(CWD, fileName));
+  }
+
+  public static boolean isFileExistInRepository(String fileName) {
+    return Utils.plainFilenamesIn(CWD).stream().anyMatch(name -> name.equals(fileName));
+  }
+
+  /**
+   * Create a new .gitlet directory in the current directory.
    * Inside .gitlet, create objects, refs directories and HEAD and logs files
-   * */
+   */
   public void init() throws IOException {
     makeDirectory();
     createBranchMaster();
@@ -129,14 +138,6 @@ public class Repository {
     stagingArea.persist();
   }
 
-  private static String readFileFromRepositoryAsString(String fileName) {
-    return Utils.readContentsAsString(Utils.join(CWD, fileName));
-  }
-
-  public static boolean isFileExistInRepository(String fileName) {
-    return Utils.plainFilenamesIn(CWD).stream().anyMatch(name -> name.equals(fileName));
-  }
-
   public void commit(String message) {
     if (stagingArea.isEmpty()) {
       System.out.println("No changes added to the commit.");
@@ -144,7 +145,7 @@ public class Repository {
 
     // Create a new commit object by cloning the head commit. As gitlet don't support detached head mode
     // So, the HEAD also points to the tip commit of current branch.
-    Commit newCommit = this.HEAD.getHEADCommit().buildNext(message);
+    Commit newCommit = this.head.getHEADCommit().buildNext(message);
     newCommit.updateIndex(stagingArea);
     newCommit.persist();
 
@@ -158,16 +159,23 @@ public class Repository {
   }
 
   public void log() {
-    Commit commit = this.HEAD.getHEADCommit();
+    Commit commit = this.head.getHEADCommit();
     while (true) {
-      System.out.println("===");
-      System.out.println("commit " + commit.sha1Hash());
-      System.out.println("Date: " + commit.getTimeStamp());
-      System.out.println(commit.getMessage());
-      System.out.println();
-      if (commit.isInitialCommit()){
+      StringBuilder output = new StringBuilder();
+      Date date = commit.getTimeStamp();
+      String formattedDate = String.format("Date: %ta %tb %td %tT %tY %tz", date, date, date, date, date, date);
+
+      output.append(
+        "===\n" +
+        "commit " + commit.sha1Hash() + "\n" +
+        formattedDate + "\n" +
+        commit.getMessage() + "\n");
+
+      System.out.println(output);
+
+      if (commit.isInitialCommit()) {
         break;
-      } else  {
+      } else {
         commit = commit.getParentCommit();
       }
     }

@@ -20,13 +20,13 @@ public class Main {
      *
      * TODO:
      * There are some failure cases you need to handle that don’t apply to a particular command. Here they are:
-     *
+     * <p>
      * If a user doesn’t input any arguments, print the message Please enter a command. and exit.
-     *
+     * <p>
      * If a user inputs a command that doesn’t exist, print the message No command with that name exists. and exit.
-     *
+     * <p>
      * If a user inputs a command with the wrong number or format of operands, print the message Incorrect operands. and exit.
-     *
+     * <p>
      * If a user inputs a command that requires being in an initialized Gitlet working directory (i.e., one containing a .gitlet subdirectory),
      * but is not in such a directory, print the message Not in an initialized Gitlet directory.
      */

@@ -3,7 +3,7 @@ package gitlet.models;
 import java.io.Serializable;
 
 /**
- * @className: Hashable
+ * @className: GitletObject
  * @description: TODO
  * @author: Wenjie FU
  * @date: 27/01/2024

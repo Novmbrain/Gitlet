@@ -121,24 +121,15 @@ public class Repository {
   }
 
   public void stage(String fileName) {
-    // TODO: If the current working version of the file is identical to the version in the current commit, do not stage it to be added, and remove it from the staging area if it is already there (as can happen when a file is changed, added, and then changed back to it’s original version).
+    // TODO: If the current working version of the file is identical to the version in the current commit,
+    //  do not stage it to be added, and remove it from the staging area if it is already there
+    //  (as can happen when a file is changed, added, and then changed back to it’s original version).
     // TODO: The file will no longer be staged for removal (see gitlet rm), if it was at the time of the command.
-
-    // check if the file is already staged
-    if (stagingArea.contains(fileName)) {
-      // if the file is identical to the on in staging area, do not stage it to be added
-      if (stagingArea.checkIdentical(fileName)) {
-        return;
-      } else {
-        // if the file is already staged, remove it from the staging area and .gitlet/objects
-        stagingArea.remove(fileName);
-      }
-    }
 
     Blob blob = new Blob(fileName, readFileFromRepositoryAsString(fileName));
     blob.persist();
-
-    stagingArea.add(blob.getFileName(), blob.sha1Hash());
+    // Staging an already-staged file overwrites the previous entry in the staging area with the new contents.
+    stagingArea.addOrOverwrite(blob.getFileName(), blob.sha1Hash());
     stagingArea.persist();
   }
 

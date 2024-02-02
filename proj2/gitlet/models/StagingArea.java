@@ -30,7 +30,20 @@ public class StagingArea implements Serializable {
     this.removedBlobs = new HashSet<>();
   }
 
-  public void add(String fileName, String blobHash) {
+  /**
+   * add a file to the staging area if it is not already in the staging area
+   * overwrite the file if it is already in the staging area. Overwriting means that
+   * 1. delete file's corresponding blob in the .gitlet/objects directory
+   * 2. update the file's blob hash in the staging area with the new blob hash
+   *
+   * @param fileName
+   * @param blobHash
+   */
+  public void addOrOverwrite(String fileName, String blobHash) {
+    if (contains(fileName)) {
+      cleanBlob(fileName);
+    }
+
     stagedBlobs.put(fileName, blobHash);
   }
 
@@ -42,7 +55,7 @@ public class StagingArea implements Serializable {
     return stagedBlobs.containsKey(fileName) || removedBlobs.contains(fileName);
   }
 
-  public void remove(String fileName) {
+  public void cleanBlob(String fileName) {
     Utils.restrictedDelete(stagedBlobs.get(fileName));
     stagedBlobs.remove(fileName);
   }

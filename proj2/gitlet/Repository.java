@@ -6,6 +6,9 @@ import gitlet.utils.Utils;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static gitlet.utils.Constants.*;
 
@@ -20,7 +23,7 @@ public class Repository {
 
   private HEAD head;
   private Branch currentBranch;
-  private StagingArea stagingArea;
+  private final StagingArea stagingArea;
 
 
   /**
@@ -58,6 +61,11 @@ public class Repository {
 
   public static boolean isFileExistInRepository(String fileName) {
     return Utils.plainFilenamesIn(CWD).stream().anyMatch(name -> name.equals(fileName));
+  }
+
+  // TODO: add a strict mode to check if the current working directory is a gitlet repository
+  public static boolean gitletExists() {
+    return GITLET_DIR.exists();
   }
 
   /**
@@ -112,10 +120,6 @@ public class Repository {
     return new Branch(currentBranchName, currentBranchTipCommitHash);
   }
 
-  public boolean gitletExists() {
-    return GITLET_DIR.exists();
-  }
-
   public void stage(String fileName) {
     // TODO: If the current working version of the file is identical to the version in the current commit, do not stage it to be added, and remove it from the staging area if it is already there (as can happen when a file is changed, added, and then changed back to it’s original version).
     // TODO: The file will no longer be staged for removal (see gitlet rm), if it was at the time of the command.
@@ -167,9 +171,9 @@ public class Repository {
 
       output.append(
         "===\n" +
-        "commit " + commit.sha1Hash() + "\n" +
-        formattedDate + "\n" +
-        commit.getMessage() + "\n");
+          "commit " + commit.sha1Hash() + "\n" +
+          formattedDate + "\n" +
+          commit.getMessage() + "\n");
 
       System.out.println(output);
 
@@ -179,5 +183,56 @@ public class Repository {
         commit = commit.getParentCommit();
       }
     }
+  }
+
+  public void status() {
+    /**
+     * tracked files = check staging files + check committed files
+     */
+
+    Set<String> committedFile = head.getHEADCommit().getFileNameToBlobHash().keySet();
+    List<String> workingDirectoryFiles = Utils.plainFilenamesIn(CWD);
+    Set<String> trackedFiles = workingDirectoryFiles.stream()
+      .filter(fileName -> stagingArea.contains(fileName) || committedFile.contains(fileName))
+      .collect(Collectors.toSet());
+
+    System.out.println("=== Branches ===");
+    System.out.println("*" + currentBranch.getName());
+    // TODO: print other branches
+    System.out.println();
+
+    System.out.println("=== Staged Files ===");
+    stagingArea.getStagedBlobs().keySet().forEach(System.out::println);
+    System.out.println();
+
+    System.out.println("=== Removed Files ===");
+    stagingArea.getRemovedBlobs().forEach(System.out::println);
+    System.out.println();
+
+    System.out.println("=== Modifications Not Staged For Commit ===");
+    // TODO: not more precise definition
+    System.out.println("TODO");
+    /**
+     * files that have been modified in the working directory, but not yet staged
+     */
+
+
+    /**
+     * file that in the most recent commit has been modified in the working directory,
+     * but not yet staged
+     */
+
+    System.out.println();
+
+    System.out.println("=== Untracked Files ===");
+    // 1. the file in the most recent commits -> already tracked
+    // 2. the file in the staging area -> already staged
+    //   - staged
+    //   - removed
+    workingDirectoryFiles.stream()
+      .filter(fileName -> !trackedFiles.contains(fileName))
+      .forEach(System.out::println);
+
+    System.out.println();
   }
 }

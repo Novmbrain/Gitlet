@@ -35,7 +35,7 @@ public class Command {
    * Our line count: ~15
    */
   public static void init() {
-    if (repository.gitletExists()) {
+    if (Repository.gitletExists()) {
       System.out.println("A Gitlet version-control system already exists in the current directory.");
     } else {
       try {
@@ -112,7 +112,7 @@ public class Command {
   }
 
   public static void status() {
-
+    repository.status();
   }
 
   /**

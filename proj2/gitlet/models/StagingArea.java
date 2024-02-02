@@ -7,7 +7,8 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import static gitlet.utils.Constants.*;
+import static gitlet.utils.Constants.CWD;
+import static gitlet.utils.Constants.STAGING_INDEX;
 
 /**
  * @className: StagingArea
@@ -17,15 +18,12 @@ import static gitlet.utils.Constants.*;
  **/
 public class StagingArea implements Serializable {
 
-  public HashMap<String, String> getStagedBlobs() {
-    return stagedBlobs;
-  }
 
   /**
    * A HashMap that maps file name to blob hash
    */
-  private HashMap<String, String> stagedBlobs;
-  private HashSet<String> removedBlobs;
+  private final HashMap<String, String> stagedBlobs;
+  private final HashSet<String> removedBlobs;
 
   public StagingArea() {
     this.stagedBlobs = new HashMap<>();
@@ -41,7 +39,7 @@ public class StagingArea implements Serializable {
   }
 
   public boolean contains(String fileName) {
-    return stagedBlobs.containsKey(fileName);
+    return stagedBlobs.containsKey(fileName) || removedBlobs.contains(fileName);
   }
 
   public void remove(String fileName) {
@@ -62,6 +60,15 @@ public class StagingArea implements Serializable {
     stagedBlobs.clear();
     removedBlobs.clear();
   }
+
+  public HashSet<String> getRemovedBlobs() {
+    return removedBlobs;
+  }
+
+  public HashMap<String, String> getStagedBlobs() {
+    return stagedBlobs;
+  }
+
 
   public boolean isEmpty() {
     return stagedBlobs.isEmpty() && removedBlobs.isEmpty();

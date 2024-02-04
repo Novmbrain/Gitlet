@@ -21,9 +21,9 @@ import static gitlet.utils.Constants.*;
  */
 public class Repository {
 
+  private final StagingArea stagingArea;
   private HEAD head;
   private Branch currentBranch;
-  private final StagingArea stagingArea;
 
 
   /**
@@ -121,15 +121,22 @@ public class Repository {
   }
 
   public void stage(String fileName) {
-    // TODO: If the current working version of the file is identical to the version in the current commit,
-    //  do not stage it to be added, and remove it from the staging area if it is already there
-    //  (as can happen when a file is changed, added, and then changed back to it’s original version).
     // TODO: The file will no longer be staged for removal (see gitlet rm), if it was at the time of the command.
 
-    Blob blob = new Blob(fileName, readFileFromRepositoryAsString(fileName));
-    blob.persist();
-    // Staging an already-staged file overwrites the previous entry in the staging area with the new contents.
-    stagingArea.addOrOverwrite(blob.getFileName(), blob.sha1Hash());
+    // if the file is identical to the version in the current commit, do not stage it to be added
+    // -- case 1: the file is not in the staging area -> do nothing
+    // -- case 2: the file is in the staging area -> remove it from the staging area
+    if (head.getHEADCommit().isFileContentHashMatching(fileName)) {
+      if (stagingArea.contains(fileName)) {
+        stagingArea.cleanBlob(fileName);
+      }
+    } else {
+      Blob blob = new Blob(fileName, readFileFromRepositoryAsString(fileName));
+      blob.persist();
+      // Staging an already-staged file overwrites the previous entry in the staging area with the new contents.
+      stagingArea.addOrOverwrite(blob.getFileName(), blob.sha1Hash());
+    }
+
     stagingArea.persist();
   }
 
@@ -201,8 +208,8 @@ public class Repository {
     System.out.println();
 
     System.out.println("=== Modifications Not Staged For Commit ===");
-    // TODO: not more precise definition
-    System.out.println("TODO");
+    // TODO:
+
     /**
      * files that have been modified in the working directory, but not yet staged
      */

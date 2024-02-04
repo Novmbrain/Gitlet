@@ -7,6 +7,8 @@ import gitlet.utils.Utils;
 import java.util.Date;
 import java.util.HashMap;
 
+import static gitlet.utils.Constants.CWD;
+
 public class Commit extends GitletObject {
   /**
    * TODO: add instance variables here.
@@ -93,5 +95,16 @@ public class Commit extends GitletObject {
 
   public boolean isInitialCommit() {
     return parentHash.isEmpty();
+  }
+
+  public boolean isFileContentHashMatching(String fileName) {
+    if (!fileNameToBlobHash.containsKey(fileName)) {
+      return false;
+    }
+
+    String blobHash = fileNameToBlobHash.get(fileName);
+    Blob blob = ObjectsHelper.getBlob(blobHash);
+    String hash = Utils.sha1(fileName, Utils.readContentsAsString(Utils.join(CWD, fileName)));
+    return blob.getFileHash().equals(hash);
   }
 }

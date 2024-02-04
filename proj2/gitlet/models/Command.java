@@ -108,9 +108,47 @@ public class Command {
   }
 
 
+  /**
+   * Usage: java gitlet.Main log
+   * <p>
+   * Description: Starting at the current head commit, display information about each commit backwards along the commit tree until the initial commit, following the first parent commit links,
+   * ignoring any second parents found in merge commits. (In regular commits, the first parent is the only parent.) This set of commit nodes is called the commit’s history.
+   * For every node in this history, the information it should display is the commit id, the time the commit was made, and the commit message.
+   * <p>
+   * Runtime: Should be linear with respect to the number of commits in the current branch.
+   * <p>
+   * Failure cases: If no commits exist, print the error message No commits exist yet.
+   * <p>
+   * Dangerous?: No
+   * <p>
+   * Our line count: ~15
+   */
   public static void log() {
     repository.log();
   }
+
+  /**
+   * Usage: java gitlet.Main status
+   * <p>
+   * Description: Displays what branches currently exist, and marks the current branch with a *. Also displays what files have been staged for addition or removal.
+   * An example of the exact format it should follow is as follows.
+   * <p>
+   * Branches:
+   * master
+   * other-branch
+   * Staged for addition:
+   * wug.txt
+   * Removed:
+   * goodbye.txt
+   * Modifications not staged for commit:
+   * hello.txt
+   * <p>
+   * Runtime: Should be linear with respect to the number of files in the working directory.
+   * <p>
+   * Failure cases: If no commits exist, print the error message No commits exist yet.
+   * <p>
+   * Dangerous?: No
+   */
 
   public static void status() {
     repository.status();
@@ -125,6 +163,20 @@ public class Command {
 
   }
 
+  /**
+   * Usage: java gitlet.Main rm [file name]
+   * <p>
+   * Description: Unstage the file if it is currently staged for addition. If the file is tracked in the current commit, stage it for removal and remove the file from the working directory if the user has not already done so (do not remove it unless it is tracked in the current commit).
+   * <p>
+   * Runtime: Should be linear with respect to the number of files in the working directory.
+   * <p>
+   * Failure cases: If the file is neither staged nor tracked by the head commit, print the error message No reason to remove the file.
+   * <p>
+   * Dangerous?: No
+   * <p>
+   * Our line count: ~15
+   * @param fileName
+   */
   public static void rm(String fileName) {
     repository.rm(fileName);
   }

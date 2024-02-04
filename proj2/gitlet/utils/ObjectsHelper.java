@@ -4,7 +4,7 @@ import gitlet.models.Blob;
 import gitlet.models.Commit;
 import gitlet.models.GitletObject;
 
-import static gitlet.utils.Constants.*;
+import static gitlet.utils.Constants.OBJECTS_DIR;
 
 /**
  * @className: ObjectsHelper

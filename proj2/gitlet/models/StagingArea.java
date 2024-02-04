@@ -1,13 +1,11 @@
 package gitlet.models;
 
-import gitlet.utils.ObjectsHelper;
 import gitlet.utils.Utils;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import static gitlet.utils.Constants.CWD;
 import static gitlet.utils.Constants.STAGING_INDEX;
 
 /**
@@ -64,15 +62,6 @@ public class StagingArea implements Serializable {
     stagedBlobs.remove(fileName);
   }
 
-  // TODO: write a unit test for this method
-  public boolean checkIdentical(String fileName) {
-    String blobHash = stagedBlobs.get(fileName);
-    Blob blob = ObjectsHelper.getBlob(blobHash);
-
-    String hash = Utils.sha1(fileName, Utils.readContentsAsString(Utils.join(CWD, fileName)));
-    return blob.getFileHash().equals(hash);
-  }
-
   public void clear() {
     stagedBlobs.clear();
     removedBlobs.clear();
@@ -85,7 +74,6 @@ public class StagingArea implements Serializable {
   public HashMap<String, String> getStagedBlobs() {
     return stagedBlobs;
   }
-
 
   public boolean isEmpty() {
     return stagedBlobs.isEmpty() && removedBlobs.isEmpty();

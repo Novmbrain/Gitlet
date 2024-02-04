@@ -4,6 +4,7 @@ import gitlet.utils.Utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -11,13 +12,6 @@ import java.util.stream.Collectors;
 
 import static gitlet.utils.Constants.*;
 
-/**
- * Represents a gitlet repository.
- *  TODO: It's a good idea to give a description here of what else this Class
- *  does at a high level.
- *
- * @author TODO
- */
 public class Repository {
 
   private final StagingArea stagingArea;
@@ -113,15 +107,13 @@ public class Repository {
     String currenBranchPath = Utils.readContentsAsString(HEAD_FILE);
     String currentBranchTipCommitHash = Utils.readContentsAsString(new File(currenBranchPath));
 
-    String[] splitPath = currenBranchPath.split(File.separator);
+    String[] splitPath = currenBranchPath.split(FileSystems.getDefault().getSeparator());
     String currentBranchName = splitPath[splitPath.length - 1];
 
     return new Branch(currentBranchName, currentBranchTipCommitHash);
   }
 
   public void stage(String fileName) {
-    // TODO: The file will no longer be staged for removal (see gitlet rm), if it was at the time of the command.
-
     // if the file is identical to the version in the current commit, do not stage it to be added
     // -- case 1: the file is not in the staging area -> do nothing
     // -- case 2: the file is in the staging area -> remove it from the staging area
@@ -137,6 +129,28 @@ public class Repository {
     }
 
     stagingArea.persist();
+  }
+
+  public void rm(String fileName) {
+    if (!head.getHEADCommit().containsFile(fileName) && !stagingArea.contains(fileName)) {
+      System.out.println("No reason to remove the file.");
+    } else {
+
+      if (stagingArea.contains(fileName)) {
+        // Unstage the file if it is currently staged for addition.
+        stagingArea.removeFromStagedBlobs(fileName);
+      }
+
+      if (head.getHEADCommit().containsFile(fileName)) {
+        // If the file is tracked in the current commit, stage it for removal and
+        stagingArea.stageForRemoval(fileName);
+
+        // remove the file from the working directory if the user has not already done so
+        Utils.restrictedDelete(Utils.join(CWD, fileName));
+      }
+
+      stagingArea.persist();
+    }
   }
 
   public void commit(String message) {
@@ -231,27 +245,5 @@ public class Repository {
     output.append("\n");
 
     System.out.println(output);
-  }
-
-  public void rm(String fileName) {
-    if (!head.getHEADCommit().containsFile(fileName) && !stagingArea.contains(fileName)) {
-      System.out.println("No reason to remove the file.");
-    } else {
-
-      if (stagingArea.contains(fileName)) {
-        // Unstage the file if it is currently staged for addition.
-        stagingArea.removeFromStagedBlobs(fileName);
-      }
-
-      if (head.getHEADCommit().containsFile(fileName)) {
-        // If the file is tracked in the current commit, stage it for removal and
-        stagingArea.stageForRemoval(fileName);
-
-        // remove the file from the working directory if the user has not already done so
-        Utils.restrictedDelete(Utils.join(CWD, fileName));
-      }
-
-      stagingArea.persist();
-    }
   }
 }

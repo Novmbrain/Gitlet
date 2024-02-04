@@ -10,13 +10,7 @@ import java.util.HashMap;
 import static gitlet.utils.Constants.CWD;
 
 public class Commit extends GitletObject {
-  /**
-   * TODO: add instance variables here.
-   *
-   * List all instance variables of the Commit class here with a useful
-   * comment above them describing what that variable represents and how that
-   * variable is used. We've provided one example for `message`.
-   */
+
   /**
    * The message of this Commit.
    */
@@ -29,7 +23,6 @@ public class Commit extends GitletObject {
    * A map that links file name to its blob
    */
   private HashMap<String, String> fileNameToBlobHash;
-
   /**
    * * The parent commit of a commit object
    */
@@ -51,10 +44,6 @@ public class Commit extends GitletObject {
 
   public HashMap<String, String> getFileNameToBlobHash() {
     return fileNameToBlobHash;
-  }
-
-  public String getParentHash() {
-    return parentHash;
   }
 
   /**

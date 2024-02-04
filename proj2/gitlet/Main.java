@@ -1,5 +1,8 @@
 package gitlet;
 
+import gitlet.models.Command;
+import gitlet.models.Repository;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -66,7 +69,7 @@ public class Main {
   }
 
   private static boolean operandChecker(String[] args) {
-    // check if the number command's operand is correct
+    // TODO: check if the number command's operand is correct
     return true;
   }
 }

@@ -1,3 +1,7 @@
+#If the current working version of the file is identical to the version in the current commit,
+#do not stage it to be added, and remove it from the staging area if it is already there (as can happen when a file is changed, added,
+#and then changed back to it’s original version).
+
 I definitions.inc
 
 > init
@@ -13,13 +17,34 @@ I definitions.inc
 <<<
 
 > status
-${ARBLINES}
-<<<*
+=== Branches ===
+*master
+ 
+=== Staged Files ===
+wug.txt
+ 
+=== Removed Files ===
+ 
+=== Modifications Not Staged For Commit ===
+ 
+=== Untracked Files ===
+
+<<<
 
 + wug.txt wug.txt
 > add wug.txt
 <<<
 
 > status
-${ARBLINES}
-<<<*
+=== Branches ===
+*master
+
+=== Staged Files ===
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<

@@ -39,12 +39,16 @@ public class StagingArea implements Serializable {
    * @param fileName
    * @param blobHash
    */
-  public void addOrOverwrite(String fileName, String blobHash) {
+  public void stageForAddOrOverwrite(String fileName, String blobHash) {
     if (contains(fileName)) {
       removeFromStagedBlobs(fileName);
     }
 
     stagedBlobs.put(fileName, blobHash);
+  }
+
+  public void stageForRemoval(String fileName) {
+    removedBlobs.add(fileName);
   }
 
   public void persist() {
@@ -85,9 +89,5 @@ public class StagingArea implements Serializable {
 
   public boolean isEmpty() {
     return stagedBlobs.isEmpty() && removedBlobs.isEmpty();
-  }
-
-  public void stageForRemoval(String fileName) {
-    removedBlobs.add(fileName);
   }
 }

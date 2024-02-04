@@ -1,8 +1,8 @@
-package gitlet;
+package gitlet.models;
 
 import java.io.IOException;
 
-import static gitlet.Repository.isFileExistInRepository;
+import static gitlet.models.Repository.isFileExistInRepository;
 
 /**
  * @className: Service

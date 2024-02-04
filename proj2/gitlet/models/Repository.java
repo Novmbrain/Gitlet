@@ -1,6 +1,5 @@
-package gitlet;
+package gitlet.models;
 
-import gitlet.models.*;
 import gitlet.utils.Utils;
 
 import java.io.File;
@@ -134,7 +133,7 @@ public class Repository {
       Blob blob = new Blob(fileName, readFileFromRepositoryAsString(fileName));
       blob.persist();
       // Staging an already-staged file overwrites the previous entry in the staging area with the new contents.
-      stagingArea.addOrOverwrite(blob.getFileName(), blob.sha1Hash());
+      stagingArea.stageForAddOrOverwrite(blob.getFileName(), blob.sha1Hash());
     }
 
     stagingArea.persist();
@@ -187,51 +186,51 @@ public class Repository {
     /**
      * tracked files = check staging files + check committed files
      */
-
     Set<String> committedFile = head.getHEADCommit().getFileNameToBlobHash().keySet();
     List<String> workingDirectoryFiles = Utils.plainFilenamesIn(CWD);
     Set<String> trackedFiles = workingDirectoryFiles.stream()
       .filter(fileName -> stagingArea.contains(fileName) || committedFile.contains(fileName))
       .collect(Collectors.toSet());
 
-    System.out.println("=== Branches ===");
-    System.out.println("*" + currentBranch.getName());
-    // TODO: print other branches
-    System.out.println();
+    StringBuilder output = new StringBuilder();
 
-    System.out.println("=== Staged Files ===");
-    stagingArea.getStagedBlobs().keySet().forEach(System.out::println);
-    System.out.println();
+    output.append("=== Branches ===\n");
+    output.append("*").append(currentBranch.getName()).append("\n");
+    // TODO: append other branches
+    output.append("\n");
 
-    System.out.println("=== Removed Files ===");
-    stagingArea.getRemovedBlobs().forEach(System.out::println);
-    System.out.println();
+    output.append("=== Staged Files ===\n");
+    stagingArea.getStagedBlobs().keySet().forEach(blobName -> output.append(blobName).append("\n"));
+    output.append("\n");
 
-    System.out.println("=== Modifications Not Staged For Commit ===");
+    output.append("=== Removed Files ===\n");
+    stagingArea.getRemovedBlobs().forEach(blobName -> output.append(blobName).append("\n"));
+    output.append("\n");
+
+    output.append("=== Modifications Not Staged For Commit ===\n");
+    output.append("\n");
+
     // TODO:
-
     /**
-     * files that have been modified in the working directory, but not yet staged
+     * append files that have been modified in the working directory, but not yet staged
      */
 
-
     /**
-     * file that in the most recent commit has been modified in the working directory,
+     * append files that in the most recent commit have been modified in the working directory,
      * but not yet staged
      */
 
-    System.out.println();
-
-    System.out.println("=== Untracked Files ===");
+    output.append("=== Untracked Files ===\n");
     // 1. the file in the most recent commits -> already tracked
     // 2. the file in the staging area -> already staged
     //   - staged
     //   - removed
     workingDirectoryFiles.stream()
       .filter(fileName -> !trackedFiles.contains(fileName))
-      .forEach(System.out::println);
+      .forEach(fileName -> output.append(fileName).append("\n"));
+    output.append("\n");
 
-    System.out.println();
+    System.out.println(output);
   }
 
   public void rm(String fileName) {

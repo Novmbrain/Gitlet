@@ -1,0 +1,25 @@
+I definitions.inc
+
+> init
+<<<
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> commit "added wug"
+<<<
+
++ wug.txt notwug.txt
+> add wug.txt
+<<<
+
+> status
+${ARBLINES}
+<<<*
+
++ wug.txt wug.txt
+> add wug.txt
+<<<
+
+> status
+${ARBLINES}
+<<<*

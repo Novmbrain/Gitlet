@@ -1,0 +1,16 @@
+# Test to check the directory structure after initialization
+I definitions.inc
+> init
+<<<
+
+# Check for the existence of .gitlet directory
+E .gitlet
+
+E .gitlet/objects
+E .gitlet/refs
+E .gitlet/refs/heads
+E .gitlet/refs/heads/master
+E .gitlet/logs
+E .gitlet/logs/master
+E .gitlet/HEAD
+E .gitlet/index

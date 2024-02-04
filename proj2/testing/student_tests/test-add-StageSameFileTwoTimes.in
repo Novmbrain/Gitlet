@@ -1,0 +1,9 @@
+# Set up a repository, add the same file to the staging area twice, and check the staging status.
+
+> init
+<<<
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> add wug.txt
+<<<

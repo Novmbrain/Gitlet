@@ -1,0 +1,19 @@
+> init
+<<<
+
++ wug.txt wug.txt
+> add wug.txt
+<<<
+# Commit "wug.txt" to the repository.
+> commit "Add wug.txt"
+<<<
+
+# modify wug.txt
++ wug.txt notwug.txt
+> add wug.txt
+<<<
+
+# Remove "wug.txt" from the staging area using the rm command.
+> rm wug.txt
+<<<
+* wug.txt

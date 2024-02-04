@@ -31,6 +31,10 @@ public class Main {
     });
     commandStrategies.put("log", args -> Command.log());
     commandStrategies.put("status", args -> Command.status());
+    commandStrategies.put("rm", args -> {
+      String fileName = args[1];
+      Command.rm(fileName);
+    });
   }
 
   /**

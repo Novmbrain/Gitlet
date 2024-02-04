@@ -41,7 +41,7 @@ public class StagingArea implements Serializable {
    */
   public void addOrOverwrite(String fileName, String blobHash) {
     if (contains(fileName)) {
-      cleanBlob(fileName);
+      removeFromStagedBlobs(fileName);
     }
 
     stagedBlobs.put(fileName, blobHash);
@@ -55,7 +55,7 @@ public class StagingArea implements Serializable {
     return stagedBlobs.containsKey(fileName) || removedBlobs.contains(fileName);
   }
 
-  public void cleanBlob(String fileName) {
+  public void removeFromStagedBlobs(String fileName) {
     Utils.restrictedDelete(stagedBlobs.get(fileName));
     stagedBlobs.remove(fileName);
   }
@@ -85,5 +85,9 @@ public class StagingArea implements Serializable {
 
   public boolean isEmpty() {
     return stagedBlobs.isEmpty() && removedBlobs.isEmpty();
+  }
+
+  public void stageForRemoval(String fileName) {
+    removedBlobs.add(fileName);
   }
 }

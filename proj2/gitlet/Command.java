@@ -125,4 +125,7 @@ public class Command {
 
   }
 
+  public static void rm(String fileName) {
+    repository.rm(fileName);
+  }
 }

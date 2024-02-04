@@ -97,6 +97,10 @@ public class Commit extends GitletObject {
     return parentHash.isEmpty();
   }
 
+  public boolean containsFile(String fileName) {
+    return fileNameToBlobHash.containsKey(fileName);
+  }
+
   public boolean isFileContentHashMatching(String fileName) {
     if (!fileNameToBlobHash.containsKey(fileName)) {
       return false;

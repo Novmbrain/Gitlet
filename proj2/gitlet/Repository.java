@@ -128,7 +128,7 @@ public class Repository {
     // -- case 2: the file is in the staging area -> remove it from the staging area
     if (head.getHEADCommit().isFileContentHashMatching(fileName)) {
       if (stagingArea.contains(fileName)) {
-        stagingArea.cleanBlob(fileName);
+        stagingArea.removeFromStagedBlobs(fileName);
       }
     } else {
       Blob blob = new Blob(fileName, readFileFromRepositoryAsString(fileName));
@@ -232,5 +232,27 @@ public class Repository {
       .forEach(System.out::println);
 
     System.out.println();
+  }
+
+  public void rm(String fileName) {
+    if (!head.getHEADCommit().containsFile(fileName) && !stagingArea.contains(fileName)) {
+      System.out.println("No reason to remove the file.");
+    } else {
+
+      if (stagingArea.contains(fileName)) {
+        // Unstage the file if it is currently staged for addition.
+        stagingArea.removeFromStagedBlobs(fileName);
+      }
+
+      if (head.getHEADCommit().containsFile(fileName)) {
+        // If the file is tracked in the current commit, stage it for removal and
+        stagingArea.stageForRemoval(fileName);
+
+        // remove the file from the working directory if the user has not already done so
+        Utils.restrictedDelete(Utils.join(CWD, fileName));
+      }
+
+      stagingArea.persist();
+    }
   }
 }

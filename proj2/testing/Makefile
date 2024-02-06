@@ -17,7 +17,7 @@ RMAKE = "$(MAKE)"
 
 TESTER = CLASSPATH="$$(pwd)/..:$(CLASSPATH):;$$(pwd)/..;$(CLASSPATH)" $(PYTHON) tester.py
 
-TESTER_FLAGS =
+TESTER_FLAGS = --verbose --show=all
 
 TESTS = samples/*.in student_tests/*.in *.in
 

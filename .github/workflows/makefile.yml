@@ -7,27 +7,23 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
-
+  test:
     runs-on: ubuntu-latest
-
+    
     steps:
     - uses: actions/checkout@v3
 
-    - name: Print current directory and change to testing directory
+    - name: infos
       run: |
         pwd
         ls
     - name: compile
-      run: make
+      run: make 
       working-directory: proj2
-      
-    - name: run java
-      run: |
-        java gitlet.Main init
-        java gitlet.Main log
+
+    - name: check
+      run: make check
       working-directory: proj2
-      
 
 
 

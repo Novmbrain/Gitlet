@@ -1,0 +1,5 @@
+> init
+<<<
+> add non-existing.txt
+File does not exist.
+<<<

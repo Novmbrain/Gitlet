@@ -23,6 +23,10 @@ jobs:
       run: make
       working-directory: proj2/testing
 
-    - name: Run check
-      run: make check
-      working-directory: proj2/testing
+  test:
+      runs-on: ubuntu-latest
+      steps:
+      - name: Run check
+        run: make check
+        working-directory: proj2/testing
+    

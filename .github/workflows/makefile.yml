@@ -35,6 +35,7 @@ jobs:
       run: |
         java gitlet.Main log
         java gitlet.Main init
+      working-directory: proj2
 
   
 

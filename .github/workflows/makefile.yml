@@ -18,24 +18,16 @@ jobs:
       run: |
         pwd
         ls
-    - name: Install dependencies
+    - name: compile
       run: make
       working-directory: proj2
       
     - name: run java
       run: |
-        java gitlet.Main log
         java gitlet.Main init
+        java gitlet.Main log
       working-directory: proj2
       
-
-  # test:
-  #   needs: build  # Ensure the build job completes before starting the test job
-  #   runs-on: ubuntu-latest
-
-  #   steps:
-  #   - name: Checkout code
-  #     uses: actions/checkout@v3
 
 
 

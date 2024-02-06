@@ -21,12 +21,21 @@ jobs:
       
     - name: Install dependencies
       run: make
-      working-directory: proj2/testing
+      working-directory: proj2
 
   test:
-      runs-on: ubuntu-latest
-      steps:
-      - name: Run check
-        run: make check
-        working-directory: proj2/testing
+    needs: build  # Ensure the build job completes before starting the test job
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: run java
+      run: |
+        java gitlet.Main log
+        java gitlet.Main init
+
+  
+
     

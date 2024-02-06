@@ -1,0 +1,20 @@
+> init
+<<<
+
+> status
+=== Branches ===
+*master
+
+=== Staged Files ===
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<
+
+> commit "a commit"
+No changes added to the commit.
+<<<

@@ -1,5 +1,5 @@
-# add and rm -> unstage the file directly
-# status: staged files should be empty, untracked files should contains wug.txt
+# add and check the file added has been staged
+
 > init
 <<<
 
@@ -7,19 +7,17 @@
 > add wug.txt
 <<<
 
-> rm wug.txt
-<<<
 > status
 === Branches ===
 *master
 
 === Staged Files ===
+wug.txt
 
 === Removed Files ===
 
 === Modifications Not Staged For Commit ===
 
 === Untracked Files ===
-wug.txt
 
 <<<

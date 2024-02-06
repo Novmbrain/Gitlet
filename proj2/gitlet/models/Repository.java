@@ -156,21 +156,23 @@ public class Repository {
   public void commit(String message) {
     if (stagingArea.isEmpty()) {
       System.out.println("No changes added to the commit.");
+    } else if (message.isEmpty()) {
+      System.out.println("Please enter a commit message.");
+    } else {
+      // Create a new commit object by cloning the head commit. As gitlet don't support detached head mode
+      // So, the HEAD also points to the tip commit of current branch.
+      Commit newCommit = this.head.getHEADCommit().buildNext(message);
+      newCommit.updateIndex(stagingArea);
+      newCommit.persist();
+
+      stagingArea.clear();
+      currentBranch.setTipCommit(newCommit);
+
+      // Write back to the disk any new objects created and any modified read from the disk
+      // TODO: considering extracting this part as method of repository call persistRepository*()
+      stagingArea.persist();
+      currentBranch.persist();
     }
-
-    // Create a new commit object by cloning the head commit. As gitlet don't support detached head mode
-    // So, the HEAD also points to the tip commit of current branch.
-    Commit newCommit = this.head.getHEADCommit().buildNext(message);
-    newCommit.updateIndex(stagingArea);
-    newCommit.persist();
-
-    stagingArea.clear();
-    currentBranch.setTipCommit(newCommit);
-
-    // Write back to the disk any new objects created and any modified read from the disk
-    // TODO: considering extracting this part as method of repository call persistRepository*()
-    stagingArea.persist();
-    currentBranch.persist();
   }
 
   public void log() {

@@ -1,0 +1,25 @@
+> init
+<<<
+
++ wug.txt wug.txt
+> add wug.txt
+<<<
+
+> commit ""
+Please enter a commit message.
+<<<
+
+> status
+=== Branches ===
+*master
+
+=== Staged Files ===
+wug.txt
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<

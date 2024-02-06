@@ -1,9 +1,21 @@
 # Set up a repository, add the same file to the staging area twice, and check the staging status.
+I definitions.inc
 
 > init
 <<<
 + wug.txt wug.txt
 > add wug.txt
 <<<
-> commit "commit message"
+> commit "added wug"
 <<<
+
+> log
+===
+${COMMIT_HEAD}
+added wug
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*

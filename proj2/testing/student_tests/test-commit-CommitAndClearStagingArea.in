@@ -1,21 +1,24 @@
-# add and check the file added has been staged
-
 > init
 <<<
+
 + wug.txt wug.txt
++ notwug.txt notwug.txt
 > add wug.txt
 <<<
+
+> commit "commit"
+<<<
+
 > status
 === Branches ===
 *master
 
 === Staged Files ===
-wug.txt
 
 === Removed Files ===
 
 === Modifications Not Staged For Commit ===
 
 === Untracked Files ===
-
+notwug.txt
 <<<

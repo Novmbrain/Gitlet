@@ -23,7 +23,7 @@ PACKAGE = gitlet
 PYTHON = python3
 
 # Flags to pass to tester.py.
-TESTER_FLAGS =
+TESTER_FLAGS = --verbose --show=all
 
 RMAKE = "$(MAKE)"
 
@@ -41,6 +41,3 @@ clean:
 	$(RM) *~
 	$(RMAKE) -C $(PACKAGE) clean
 	$(RMAKE) -C testing clean
-
-
-

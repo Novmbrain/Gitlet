@@ -44,4 +44,5 @@ public class Branch {
   public static boolean branchExists(String branchName) {
     return Utils.join(REFS_HEADS_DIR, branchName).exists();
   }
+
 }

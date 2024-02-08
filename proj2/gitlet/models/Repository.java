@@ -212,8 +212,14 @@ public class Repository {
     StringBuilder output = new StringBuilder();
 
     output.append("=== Branches ===\n");
-    output.append("*").append(currentBranch.getName()).append("\n");
-    // TODO: append other branches
+    List<String> strings = Utils.plainFilenamesIn(REFS_HEADS_DIR);
+    strings.forEach(branchName -> {
+      if (branchName.equals(currentBranch.getName())) {
+        output.append("*").append(branchName).append("\n");
+      } else {
+        output.append(branchName).append("\n");
+      }
+    });
     output.append("\n");
 
     output.append("=== Staged Files ===\n");
@@ -295,4 +301,6 @@ public class Repository {
   }
 
   // TODO: checkout branch
+
+
 }

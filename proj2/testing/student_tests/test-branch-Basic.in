@@ -1,0 +1,22 @@
+> init
+<<<
+
+> branch new-branch
+<<<
+
+> status
+=== Branches ===
+*master
+new-branch
+
+=== Staged Files ===
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+<<<
+
+E .gitlet/refs/heads/master
+E .gitlet/refs/heads/new-branch

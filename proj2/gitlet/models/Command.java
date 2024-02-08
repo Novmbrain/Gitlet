@@ -11,6 +11,8 @@ import static gitlet.models.Repository.isFileExistInRepository;
  * @date: 22/01/2024
  **/
 
+
+// TODO: Considering move the logic in Command to Repository and remove the Command class
 public class Command {
 
   private static final Repository repository = new Repository();
@@ -160,7 +162,11 @@ public class Command {
    * @param name
    */
   public static void branch(String name) {
-
+    try {
+      repository.branch(name);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
@@ -175,9 +181,23 @@ public class Command {
    * Dangerous?: No
    * <p>
    * Our line count: ~15
+   *
    * @param fileName
    */
   public static void rm(String fileName) {
     repository.rm(fileName);
+  }
+
+
+  public static void checkoutFile(String fileName) {
+    repository.checkoutFile(fileName);
+  }
+
+  public static void checkoutFileFromCommit(String commitHash, String fileName) {
+    repository.checkoutFileFromCommit(commitHash, fileName);
+  }
+
+  public static void checkoutBranch(String branchName) {
+    repository.checkoutBranch(branchName);
   }
 }

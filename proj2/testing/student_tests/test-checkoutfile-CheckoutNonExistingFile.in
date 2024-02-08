@@ -1,0 +1,27 @@
+> init
+<<<
+
++ wug.txt wug.txt
+> add wug.txt
+<<<
+
+> commit -m "first commit"
+<<<
+
+> checkout -- notwug.txt
+File does not exist in that commit.
+<<<
+
+> status
+=== Branches ===
+*master
+
+=== Staged Files ===
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<

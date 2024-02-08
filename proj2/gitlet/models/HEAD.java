@@ -13,6 +13,7 @@ import gitlet.utils.Utils;
 import java.io.File;
 
 import static gitlet.utils.Constants.HEAD_FILE;
+import static gitlet.utils.Constants.OBJECTS_DIR;
 
 /**
  * singleton HEAD
@@ -38,5 +39,14 @@ public class HEAD {
     } else {
       return head;
     }
+  }
+
+  public boolean contains(String fileName) {
+   return HEADCommit.containsFile(fileName);
+  }
+
+  public Blob getBlob(String fileName) {
+    String blobHash = HEADCommit.getFileNameToBlobHash().get(fileName);
+    return Utils.readObject(Utils.join(OBJECTS_DIR, blobHash), Blob.class);
   }
 }

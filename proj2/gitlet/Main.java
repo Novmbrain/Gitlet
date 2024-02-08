@@ -1,11 +1,8 @@
 package gitlet;
 
-import gitlet.models.Command;
 import gitlet.models.Repository;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Consumer;
+import static gitlet.CommandStrategy.COMMAND_STRATEGIES;
 
 /**
  * Driver class for Gitlet, a subset of the Git version-control system.
@@ -16,29 +13,6 @@ import java.util.function.Consumer;
  * @author TODO
  */
 public class Main {
-
-  private static final Map<String, Consumer<String[]>> commandStrategies = new HashMap<>();
-
-  static {
-    // Initialize the strategies
-    commandStrategies.put("init", args -> {
-      Command.init();
-    });
-    commandStrategies.put("add", args -> {
-      String fileName = args[1];
-      Command.add(fileName);
-    });
-    commandStrategies.put("commit", args -> {
-      String commitMessage = args[1];
-      Command.commit(commitMessage);
-    });
-    commandStrategies.put("log", args -> Command.log());
-    commandStrategies.put("status", args -> Command.status());
-    commandStrategies.put("rm", args -> {
-      String fileName = args[1];
-      Command.rm(fileName);
-    });
-  }
 
   /**
    * Usage: java gitlet.Main ARGS, where ARGS contains
@@ -57,7 +31,7 @@ public class Main {
 
     String commandType = args[0];
 
-    if (!commandStrategies.containsKey(commandType)) {
+    if (!COMMAND_STRATEGIES.containsKey(commandType)) {
       System.out.println("No command with that name exists.");
       return;
     } else if (!commandType.equals("init") && !Repository.gitletExists()) {
@@ -65,7 +39,7 @@ public class Main {
       return;
     }
 
-    commandStrategies.get(commandType).accept(args);
+    COMMAND_STRATEGIES.get(commandType).accept(args);
   }
 
   private static boolean operandChecker(String[] args) {

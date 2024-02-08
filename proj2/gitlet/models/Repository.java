@@ -1,5 +1,6 @@
 package gitlet.models;
 
+import gitlet.utils.ObjectsHelper;
 import gitlet.utils.Utils;
 
 import java.io.File;
@@ -132,7 +133,7 @@ public class Repository {
   }
 
   public void rm(String fileName) {
-    if (!head.getHEADCommit().containsFile(fileName) && !stagingArea.contains(fileName)) {
+    if (!head.contains(fileName) && !stagingArea.contains(fileName)) {
       System.out.println("No reason to remove the file.");
     } else {
 
@@ -141,7 +142,7 @@ public class Repository {
         stagingArea.removeFromStagedBlobs(fileName);
       }
 
-      if (head.getHEADCommit().containsFile(fileName)) {
+      if (head.contains(fileName)) {
         // If the file is tracked in the current commit, stage it for removal and
         stagingArea.stageForRemoval(fileName);
 
@@ -248,4 +249,50 @@ public class Repository {
 
     System.out.println(output);
   }
+
+  /**
+   * if the file is in the staging area, overwrite it with the version in the commit and
+   * if the file is not in the staging area, overwrite it with the version in the commit
+   * @param fileName
+   */
+  public void checkoutFile(String fileName) {
+    if (!head.contains(fileName)) {
+      System.out.println("File does not exist in that commit.");
+    } else {
+      Blob blob = head.getBlob(fileName);
+      Utils.writeContents(Utils.join(CWD, fileName), blob.getContent());
+    }
+  }
+
+  public void checkoutFileFromCommit(String commitHash, String fileName) {
+    if (!ObjectsHelper.objectExists(commitHash)) {
+      System.out.println("No commit with that id exists.");
+    } else {
+      Commit commit = ObjectsHelper.getCommit(commitHash);
+
+      if (!commit.containsFile(fileName)) {
+        System.out.println("File does not exist in that commit.");
+      } else {
+        Blob blob = commit.getBlob(fileName);
+        Utils.writeContents(Utils.join(CWD, fileName), blob.getContent());
+      }
+    }
+  }
+
+  public void checkoutBranch(String branchName) {
+
+  }
+
+  public void branch(String branchName) throws IOException {
+    if (Branch.branchExists(branchName)) {
+      System.out.println("A branch with that name already exists.");
+    } else {
+      Utils.join(REFS_HEADS_DIR, branchName).createNewFile();
+      Branch branch = new Branch(branchName);
+      branch.setTipCommit(head.getHEADCommit());
+      branch.persist();
+    }
+  }
+
+  // TODO: checkout branch
 }

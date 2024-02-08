@@ -24,4 +24,8 @@ public class ObjectsHelper {
   public static void persistObject(String hash, GitletObject object) {
     Utils.writeObject(Utils.join(OBJECTS_DIR, hash), object);
   }
+
+  public static boolean objectExists(String hash) {
+    return Utils.join(OBJECTS_DIR, hash).exists();
+  }
 }

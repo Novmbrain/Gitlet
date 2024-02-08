@@ -100,4 +100,9 @@ public class Commit extends GitletObject {
     String hash = Utils.sha1(fileName, Utils.readContentsAsString(Utils.join(CWD, fileName)));
     return blob.getFileHash().equals(hash);
   }
+
+  public Blob getBlob(String fileName) {
+    String blobHash = fileNameToBlobHash.get(fileName);
+    return ObjectsHelper.getBlob(blobHash);
+  }
 }

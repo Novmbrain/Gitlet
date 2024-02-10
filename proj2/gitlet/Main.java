@@ -1,8 +1,10 @@
 package gitlet;
 
 import gitlet.models.Repository;
+import gitlet.utils.GitletException;
 
 import static gitlet.CommandStrategy.COMMAND_STRATEGIES;
+import static gitlet.utils.Utils.messageAndExit;
 
 /**
  * Driver class for Gitlet, a subset of the Git version-control system.
@@ -18,32 +20,24 @@ public class Main {
    * Usage: java gitlet.Main ARGS, where ARGS contains
    * <COMMAND> <OPERAND1> <OPERAND2> ...
    */
-  public static void main(String[] args) {
+  public static void main(String[] args) throws GitletException {
 
     /**
      * TODO: Checking order matters
      * If a user inputs a command with the wrong number or format of operands, print the message Incorrect operands. and exit.
      */
     if (args.length == 0) {
-      System.out.println("Please enter a command.");
-      return;
+      messageAndExit("Please enter a command.");
     }
 
     String commandType = args[0];
 
     if (!COMMAND_STRATEGIES.containsKey(commandType)) {
-      System.out.println("No command with that name exists.");
-      return;
+      messageAndExit("No command with that name exists.");
     } else if (!commandType.equals("init") && !Repository.gitletExists()) {
-      System.out.println("Not in an initialized Gitlet directory.");
-      return;
+      messageAndExit("Not in an initialized Gitlet directory.");
     }
 
     COMMAND_STRATEGIES.get(commandType).accept(args);
-  }
-
-  private static boolean operandChecker(String[] args) {
-    // TODO: check if the number command's operand is correct
-    return true;
   }
 }

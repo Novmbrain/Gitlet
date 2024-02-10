@@ -228,4 +228,9 @@ public class Utils {
         System.out.printf(msg, args);
         System.out.println();
     }
+
+    public static void messageAndExit(String message) {
+        System.out.println(message);
+        System.exit(0);
+    }
 }

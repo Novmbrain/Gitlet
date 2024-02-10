@@ -1,6 +1,6 @@
 package gitlet;
 
-import gitlet.models.Command;
+import gitlet.models.Repository;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -15,50 +15,61 @@ import java.util.function.Consumer;
  **/
 public class CommandStrategy{
   public static final Map<String, Consumer<String[]>> COMMAND_STRATEGIES = new HashMap<>();
+  public static final Repository REPOSITORY = new Repository();
 
   static {
-    // Initialize the strategies
-    COMMAND_STRATEGIES.put("init", args -> {
-      Command.init();
-    });
+      // Initialize the strategies
+      COMMAND_STRATEGIES.put("init", args -> {
+        try {
+          Repository.init();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
 
-    COMMAND_STRATEGIES.put("add", args -> {
-      String fileName = args[1];
-      Command.add(fileName);
-    });
+      COMMAND_STRATEGIES.put("add", args -> {
+        String fileName = args[1];
+        Repository.add(fileName);
+      });
 
-    COMMAND_STRATEGIES.put("commit", args -> {
-      String commitMessage = args[1];
-      Command.commit(commitMessage);
-    });
+      COMMAND_STRATEGIES.put("commit", args -> {
+        String commitMessage = args[1];
+        Repository.commit(commitMessage);
+      });
 
-    COMMAND_STRATEGIES.put("log", args -> Command.log());
+      COMMAND_STRATEGIES.put("log", args -> Repository.log());
 
-    COMMAND_STRATEGIES.put("status", args -> Command.status());
+      COMMAND_STRATEGIES.put("status", args -> Repository.status());
 
-    COMMAND_STRATEGIES.put("rm", args -> {
-      String fileName = args[1];
-      Command.rm(fileName);
-    });
+      COMMAND_STRATEGIES.put("rm", args -> {
+        String fileName = args[1];
+        Repository.rm(fileName);
+      });
 
-    COMMAND_STRATEGIES.put("checkout", args -> {
-      int length = args.length;
-      if (length == 3) {
-        String fileName = args[2];
-        Command.checkoutFile(fileName);
-      } else if (length == 4) {
-        String commitHash = args[1];
-        String fileName = args[3];
-        Command.checkoutFileFromCommit(commitHash, fileName);
-      } else if (length == 2) {
-        // TODO: checkout branch
+      COMMAND_STRATEGIES.put("checkout", args -> {
+        int length = args.length;
+        if (length == 3) {
+          String fileName = args[2];
+          Repository.checkoutFile(fileName);
+        } else if (length == 4) {
+          String commitHash = args[1];
+          String fileName = args[3];
+          Repository.checkoutFileFromCommit(commitHash, fileName);
+        } else if (length == 2) {
+          // TODO: checkout branch
+          String branchName = args[1];
+          Repository.checkoutBranch(branchName);
+        }
+      });
+
+
+      COMMAND_STRATEGIES.put("branch", args -> {
         String branchName = args[1];
-        Command.checkoutBranch(branchName);
-      }
-    });
-    COMMAND_STRATEGIES.put("branch", args -> {
-      String branchName = args[1];
-        Command.branch(branchName);
-    });
+        try {
+          REPOSITORY.branch(branchName);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      });
   }
 }

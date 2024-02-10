@@ -1,7 +1,6 @@
 package gitlet.models;
 
 import gitlet.utils.ObjectsHelper;
-import gitlet.utils.Utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,12 +11,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static gitlet.utils.Constants.*;
+import static gitlet.utils.Utils.*;
 
 public class Repository {
 
-  private final StagingArea stagingArea;
-  private HEAD head;
-  private Branch currentBranch;
+  private static StagingArea stagingArea;
+  private static HEAD head;
+  private static Branch currentBranch;
 
 
   /**
@@ -41,20 +41,20 @@ public class Repository {
   public Repository() {
     if (gitletExists()) {
       // load the staging area
-      this.stagingArea = Utils.readObject(STAGING_INDEX, StagingArea.class);
-      this.currentBranch = getCurrentBranch();
+      stagingArea = readObject(STAGING_INDEX, StagingArea.class);
+      currentBranch = getCurrentBranch();
       this.head = HEAD.getInstance();
     } else {
-      this.stagingArea = new StagingArea();
+      stagingArea = new StagingArea();
     }
   }
 
   private static String readFileFromRepositoryAsString(String fileName) {
-    return Utils.readContentsAsString(Utils.join(CWD, fileName));
+    return readContentsAsString(join(CWD, fileName));
   }
 
   public static boolean isFileExistInRepository(String fileName) {
-    return Utils.plainFilenamesIn(CWD).stream().anyMatch(name -> name.equals(fileName));
+    return plainFilenamesIn(CWD).stream().anyMatch(name -> name.equals(fileName));
   }
 
   // TODO: add a strict mode to check if the current working directory is a gitlet repository
@@ -66,18 +66,22 @@ public class Repository {
    * Create a new .gitlet directory in the current directory.
    * Inside .gitlet, create objects, refs directories and HEAD and logs files
    */
-  public void init() throws IOException {
+  public static void init() throws IOException {
+    if (Repository.gitletExists()) {
+      messageAndExit("A Gitlet version-control system already exists in the current directory.");
+    }
+
     makeDirectory();
     createBranchMaster();
     persistHEAD(currentBranch);
     stagingArea.persist();
   }
 
-  private void persistHEAD(Branch currentBranch) {
-    Utils.writeContents(HEAD_FILE, Utils.join(REFS_HEADS_DIR, currentBranch.getName()).toString());
+  private static void persistHEAD(Branch currentBranch) {
+    writeContents(HEAD_FILE, join(REFS_HEADS_DIR, currentBranch.getName()).toString());
   }
 
-  private void makeDirectory() throws IOException {
+  private static void makeDirectory() throws IOException {
     GITLET_DIR.mkdir();
     OBJECTS_DIR.mkdir();
     REFS_DIR.mkdir();
@@ -87,7 +91,7 @@ public class Repository {
     STAGING_INDEX.createNewFile();
   }
 
-  public void createBranchMaster() throws IOException {
+  public static void createBranchMaster() throws IOException {
     // Create and persist the initial initialCommit
     Commit initialCommit = new Commit(INITIAL_COMMIT_MESSAGE, new Date(0));
     initialCommit.persist();
@@ -98,15 +102,15 @@ public class Repository {
     // pointer master to the first initialCommit,
     master.setTipCommit(initialCommit);
     master.persist();
-    this.currentBranch = master;
+    currentBranch = master;
 
     // Create a file named master in logs to store the log records of changes made to the master branch
-    Utils.join(LOGS_DIR, MASTER).createNewFile();
+    join(LOGS_DIR, MASTER).createNewFile();
   }
 
   private Branch getCurrentBranch() {
-    String currenBranchPath = Utils.readContentsAsString(HEAD_FILE);
-    String currentBranchTipCommitHash = Utils.readContentsAsString(new File(currenBranchPath));
+    String currenBranchPath = readContentsAsString(HEAD_FILE);
+    String currentBranchTipCommitHash = readContentsAsString(new File(currenBranchPath));
 
     String[] splitPath = currenBranchPath.split(FileSystems.getDefault().getSeparator());
     String currentBranchName = splitPath[splitPath.length - 1];
@@ -114,7 +118,11 @@ public class Repository {
     return new Branch(currentBranchName, currentBranchTipCommitHash);
   }
 
-  public void stage(String fileName) {
+  public static void add(String fileName) {
+    if (!isFileExistInRepository(fileName)) {
+      messageAndExit("File does not exist.");
+    }
+
     // if the file is identical to the version in the current commit, do not stage it to be added
     // -- case 1: the file is not in the staging area -> do nothing
     // -- case 2: the file is in the staging area -> remove it from the staging area
@@ -132,9 +140,9 @@ public class Repository {
     stagingArea.persist();
   }
 
-  public void rm(String fileName) {
+  public static void rm(String fileName) {
     if (!head.contains(fileName) && !stagingArea.contains(fileName)) {
-      System.out.println("No reason to remove the file.");
+      messageAndExit("No reason to remove the file.");
     } else {
 
       if (stagingArea.contains(fileName)) {
@@ -147,22 +155,22 @@ public class Repository {
         stagingArea.stageForRemoval(fileName);
 
         // remove the file from the working directory if the user has not already done so
-        Utils.restrictedDelete(Utils.join(CWD, fileName));
+        restrictedDelete(join(CWD, fileName));
       }
 
       stagingArea.persist();
     }
   }
 
-  public void commit(String message) {
+  public static void commit(String message) {
     if (stagingArea.isEmpty()) {
-      System.out.println("No changes added to the commit.");
+      messageAndExit("No changes added to the commit.");
     } else if (message.isEmpty()) {
-      System.out.println("Please enter a commit message.");
+      messageAndExit("Please enter a commit message.");
     } else {
       // Create a new commit object by cloning the head commit. As gitlet don't support detached head mode
       // So, the HEAD also points to the tip commit of current branch.
-      Commit newCommit = this.head.getHEADCommit().buildNext(message);
+      Commit newCommit = head.getHEADCommit().buildNext(message);
       newCommit.updateIndex(stagingArea);
       newCommit.persist();
 
@@ -176,8 +184,8 @@ public class Repository {
     }
   }
 
-  public void log() {
-    Commit commit = this.head.getHEADCommit();
+  public static void log() {
+    Commit commit = head.getHEADCommit();
     while (true) {
       StringBuilder output = new StringBuilder();
       Date date = commit.getTimeStamp();
@@ -199,20 +207,14 @@ public class Repository {
     }
   }
 
-  public void status() {
+  public static void status() {
     /**
      * tracked files = check staging files + check committed files
      */
-    Set<String> committedFile = head.getHEADCommit().getFileNameToBlobHash().keySet();
-    List<String> workingDirectoryFiles = Utils.plainFilenamesIn(CWD);
-    Set<String> trackedFiles = workingDirectoryFiles.stream()
-      .filter(fileName -> stagingArea.contains(fileName) || committedFile.contains(fileName))
-      .collect(Collectors.toSet());
-
     StringBuilder output = new StringBuilder();
 
     output.append("=== Branches ===\n");
-    List<String> strings = Utils.plainFilenamesIn(REFS_HEADS_DIR);
+    List<String> strings = plainFilenamesIn(REFS_HEADS_DIR);
     strings.forEach(branchName -> {
       if (branchName.equals(currentBranch.getName())) {
         output.append("*").append(branchName).append("\n");
@@ -248,12 +250,19 @@ public class Repository {
     // 2. the file in the staging area -> already staged
     //   - staged
     //   - removed
-    workingDirectoryFiles.stream()
-      .filter(fileName -> !trackedFiles.contains(fileName))
-      .forEach(fileName -> output.append(fileName).append("\n"));
+    getUntrackedFiles().forEach(fileName -> output.append(fileName).append("\n"));
     output.append("\n");
 
     System.out.println(output);
+  }
+
+  private static Set<String> getUntrackedFiles() {
+    List<String> workingDirectoryFiles = plainFilenamesIn(CWD);
+    Set<String> committedFile = head.getHEADCommit().getFileNameToBlobHash().keySet();
+    Set<String> untrackedFiles = workingDirectoryFiles.stream()
+      .filter(fileName -> !stagingArea.contains(fileName) && !committedFile.contains(fileName))
+      .collect(Collectors.toSet());
+    return untrackedFiles;
   }
 
   /**
@@ -261,39 +270,60 @@ public class Repository {
    * if the file is not in the staging area, overwrite it with the version in the commit
    * @param fileName
    */
-  public void checkoutFile(String fileName) {
+  public static void checkoutFile(String fileName) {
     if (!head.contains(fileName)) {
-      System.out.println("File does not exist in that commit.");
+      messageAndExit("File does not exist in that commit.");
     } else {
       Blob blob = head.getBlob(fileName);
-      Utils.writeContents(Utils.join(CWD, fileName), blob.getContent());
+      writeContents(join(CWD, fileName), blob.getContent());
     }
   }
 
-  public void checkoutFileFromCommit(String commitHash, String fileName) {
+  public static void checkoutFileFromCommit(String commitHash, String fileName) {
     if (!ObjectsHelper.objectExists(commitHash)) {
-      System.out.println("No commit with that id exists.");
+      messageAndExit("No commit with that id exists.");
     } else {
       Commit commit = ObjectsHelper.getCommit(commitHash);
 
       if (!commit.containsFile(fileName)) {
-        System.out.println("File does not exist in that commit.");
+        messageAndExit("File does not exist in that commit.");
       } else {
         Blob blob = commit.getBlob(fileName);
-        Utils.writeContents(Utils.join(CWD, fileName), blob.getContent());
+        writeContents(join(CWD, fileName), blob.getContent());
       }
     }
   }
 
-  public void checkoutBranch(String branchName) {
+  public static void checkoutBranch(String branchName) {
+    if (!Branch.branchExists(branchName)) {
+      System.out.println("No such branch exists.");
+    } else if (branchName.equals(currentBranch.getName())) {
+      messageAndExit("No need to checkout the current branch.");
+    } else {
+      Commit commit = ObjectsHelper.getCommit(readContentsAsString(join(REFS_HEADS_DIR, branchName)));
+
+      for (String fileName : getUntrackedFiles()) {
+        if (commit.containsFile(fileName)) {
+          messageAndExit("There is an untracked file in the way; delete it or add it first.");
+        }
+      }
+
+      // move head to the new branch
+    }
 
   }
 
-  public void branch(String branchName) throws IOException {
+  public void branch(String branchName) {
     if (Branch.branchExists(branchName)) {
-      System.out.println("A branch with that name already exists.");
+      messageAndExit("A branch with that name already exists.");
     } else {
-      Utils.join(REFS_HEADS_DIR, branchName).createNewFile();
+
+      try {
+        join(REFS_HEADS_DIR, branchName).createNewFile();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+
       Branch branch = new Branch(branchName);
       branch.setTipCommit(head.getHEADCommit());
       branch.persist();

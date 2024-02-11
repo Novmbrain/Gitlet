@@ -22,7 +22,7 @@ jobs:
       working-directory: proj2
 
     - name: check
-      run: make check
+      run: make check TESTER_FLAGS="--verbose"
       working-directory: proj2
 
 

@@ -29,7 +29,19 @@ wug.txt
 
 <<<
 
-> checkout -- wug.txt
+> log
+===
+${COMMIT_HEAD}
+add wug.txt
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+
+D UID1 "${1}"
+> checkout ${UID1} -- wug.txt
 <<<
 
 > status

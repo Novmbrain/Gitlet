@@ -39,7 +39,7 @@ public class StagingArea implements Serializable {
    */
   public void stageForAddOrOverwrite(String fileName, String blobHash) {
     if (contains(fileName)) {
-      removeFromStagedBlobs(fileName);
+      clearStagedBlob(fileName);
     }
 
     stagedBlobs.put(fileName, blobHash);
@@ -57,14 +57,26 @@ public class StagingArea implements Serializable {
     return stagedBlobs.containsKey(fileName) || removedBlobs.contains(fileName);
   }
 
-  public void removeFromStagedBlobs(String fileName) {
+  public void clearStagedBlob(String fileName) {
     Utils.restrictedDelete(stagedBlobs.get(fileName));
     stagedBlobs.remove(fileName);
   }
 
-  public void clear() {
+  public void clearAllStagedBlob() {
+    for (String fileName : stagedBlobs.keySet()) {
+      Utils.restrictedDelete(stagedBlobs.get(fileName));
+    }
+    stagedBlobs.clear();
+  }
+
+  public void removeAllMapping() {
     stagedBlobs.clear();
     removedBlobs.clear();
+  }
+
+  public void removeFromMapping(String fileName) {
+    stagedBlobs.remove(fileName);
+    removedBlobs.remove(fileName);
   }
 
   public HashSet<String> getRemovedBlobs() {

@@ -1,0 +1,9 @@
+> init
+<<<
+
+> branch new-branch
+<<<
+
+> checkout non-exist-branch
+No such branch exists.
+<<<

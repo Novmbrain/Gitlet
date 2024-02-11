@@ -70,12 +70,16 @@ public class Commit extends GitletObject {
 
   public void updateIndex(StagingArea stagingArea) {
     HashMap<String, String> stagedBlobs = stagingArea.getStagedBlobs();
-    for (String fileName : stagedBlobs.keySet()) {
-      // if file name doest not exists in fileNameToBlobMap -> add it. Otherwise -> replace it
-      fileNameToBlobHash.put(fileName, stagedBlobs.get(fileName));
 
-      // TODO: deal with the case "stage for removal"
-    }
+    stagingArea.getStagedBlobs().forEach((fileName, blobHash) -> {
+      if (fileNameToBlobHash.containsKey(fileName)) {
+        fileNameToBlobHash.replace(fileName, blobHash);
+      } else {
+        fileNameToBlobHash.put(fileName, blobHash);
+      }
+    });
+
+    stagingArea.getRemovedBlobs().forEach(fileNameToBlobHash::remove);
   }
 
   public Commit getParentCommit() {

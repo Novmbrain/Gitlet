@@ -1,0 +1,19 @@
+> init
+<<<
+
++ wug.txt wug.txt
+> add wug.txt
+<<<
+
+> commit "add wug.txt"
+<<<
+
+> rm wug.txt
+<<<
+
+> commit "rm wug.txt"
+<<<
+
+> checkout -- wug.txt
+File does not exist in that commit.
+<<<

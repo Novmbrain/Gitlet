@@ -159,6 +159,7 @@ public class Repository {
       // Create a new commit object by cloning the head commit. As gitlet don't support detached head mode
       // So, the HEAD also points to the tip commit of current branch.
       Commit newCommit = Head.getHEADCommit().buildNext(message);
+
       newCommit.updateIndex(stagingArea);
       newCommit.persist();
 
@@ -332,7 +333,6 @@ public class Repository {
         writeContents(join(CWD, fileName), blob.getContent());
       });
 
-      //Head.persist();
       currentBranch = getCurrentBranch();
       persistHEAD();
       stagingArea.persist();

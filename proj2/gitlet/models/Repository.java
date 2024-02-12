@@ -205,9 +205,6 @@ public class Repository {
     List<String> branches = plainFilenamesIn(REFS_HEADS_DIR);
     Set<String> stagedForAdditionFiles = stagingArea.getStagedBlobs().keySet();
     Set<String> stagedForRemovalFiles = stagingArea.getRemovedBlobs();
-    List<String> allFiles = plainFilenamesIn(CWD);
-
-
 
     output.append("=== Branches ===\n");
     branches.forEach(branchName -> {

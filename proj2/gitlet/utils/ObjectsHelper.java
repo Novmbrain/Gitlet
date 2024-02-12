@@ -4,6 +4,8 @@ import gitlet.models.Blob;
 import gitlet.models.Commit;
 import gitlet.models.GitletObject;
 
+import java.io.File;
+
 import static gitlet.utils.Constants.OBJECTS_DIR;
 
 /**
@@ -14,18 +16,36 @@ import static gitlet.utils.Constants.OBJECTS_DIR;
  **/
 public class ObjectsHelper {
   public static Commit getCommit(String commitHash) {
-    return Utils.readObject(Utils.join(OBJECTS_DIR, commitHash), Commit.class);
+    String index = commitHash.substring(0, 2);
+    String rest = commitHash.substring(2);
+    File indexDirectory = Utils.join(OBJECTS_DIR, index);
+
+    return Utils.readObject(Utils.join(indexDirectory, rest), Commit.class);
   }
 
   public static Blob getBlob(String blobHash) {
-    return Utils.readObject(Utils.join(OBJECTS_DIR, blobHash), Blob.class);
+    String index = blobHash.substring(0, 2);
+    String rest = blobHash.substring(2);
+    File indexDirectory = Utils.join(OBJECTS_DIR, index);
+
+    return Utils.readObject(Utils.join(indexDirectory, rest), Blob.class);
   }
 
   public static void persistObject(String hash, GitletObject object) {
-    Utils.writeObject(Utils.join(OBJECTS_DIR, hash), object);
+    String index = hash.substring(0, 2);
+    String rest = hash.substring(2);
+    File indexDirectory = Utils.join(OBJECTS_DIR, index);
+    indexDirectory.mkdirs();
+
+    Utils.writeObject(Utils.join(indexDirectory, rest), object);
   }
 
-  public static boolean objectExists(String hash) {
-    return Utils.join(OBJECTS_DIR, hash).exists();
+  public static boolean objectExists(String hash)
+  {
+    String index = hash.substring(0, 2);
+    String rest = hash.substring(2);
+    File indexDirectory = Utils.join(OBJECTS_DIR, index);
+
+    return Utils.join(indexDirectory, rest).exists();
   }
 }

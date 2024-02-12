@@ -42,7 +42,7 @@ public class Head {
 
   public static Blob getBlob(String fileName) {
     String blobHash = HEADCommit.getFileNameToBlobHash().get(fileName);
-    return Utils.readObject(Utils.join(OBJECTS_DIR, blobHash), Blob.class);
+    return ObjectsHelper.getBlob(blobHash);
   }
 
   public static String getHEADCommitPath() {

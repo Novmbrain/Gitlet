@@ -229,6 +229,7 @@ public class Repository {
 
     output.append("=== Modifications Not Staged For Commit ===\n");
     output.append("\n");
+    // TODO:
     // 1. Staged for addition, but with different contents than in the working directory;
 
     // 2. Staged for addition, but deleted in the working directory;

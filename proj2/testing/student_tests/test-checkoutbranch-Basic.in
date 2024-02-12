@@ -7,6 +7,33 @@
 > checkout new-branch
 <<<
 
++ wug.txt wug.txt
+> add wug.txt
+<<<
+
+> commit "add wug.txt and notwug.txt to new-branch"
+<<<
+
+> checkout master
+<<<
+
++ wug.txt wug.txt
+> add wug.txt
+<<<
+
++ notwug.txt notwug.txt
+> add notwug.txt
+<<<
+
+> commit "add wug.txt and notwug.txt to master"
+<<<
+
+> checkout new-branch
+<<<
+
+* notwug.txt
+E wug.txt
+
 > status
 === Branches ===
 master

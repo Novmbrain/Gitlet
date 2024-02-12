@@ -1,0 +1,69 @@
+I definitions.inc
+
+> init
+<<<
+
++ a.txt a.txt
++ b.txt b.txt
+
+> status
+=== Branches ===
+*master
+
+=== Staged Files ===
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+a.txt
+b.txt
+
+<<<
+
+> add a.txt
+<<<
+> add b.txt
+<<<
+
+> status
+=== Branches ===
+*master
+
+=== Staged Files ===
+a.txt
+b.txt
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<
+
+> commit -m "add a.txt and b.txt"
+<<<
+
+> rm a.txt
+<<<
+
+* a.txt
++ a.txt a.txt
+
+> status
+=== Branches ===
+*master
+
+=== Staged Files ===
+
+=== Removed Files ===
+a.txt
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+a.txt
+
+<<<

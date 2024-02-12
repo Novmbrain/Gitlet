@@ -18,58 +18,68 @@ public class CommandStrategy{
   public static final Repository REPOSITORY = new Repository();
 
   static {
-      // Initialize the strategies
-      COMMAND_STRATEGIES.put("init", args -> {
-        try {
-          Repository.init();
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      });
+    COMMAND_STRATEGIES.put("init", CommandStrategy::init);
+    COMMAND_STRATEGIES.put("add", CommandStrategy::add);
+    COMMAND_STRATEGIES.put("commit", CommandStrategy::commit);
+    COMMAND_STRATEGIES.put("log", CommandStrategy::log);
+    COMMAND_STRATEGIES.put("status", CommandStrategy::status);
+    COMMAND_STRATEGIES.put("rm", CommandStrategy::remove);
+    COMMAND_STRATEGIES.put("checkout", CommandStrategy::checkout);
+    COMMAND_STRATEGIES.put("branch", CommandStrategy::branch);
+  }
 
-      COMMAND_STRATEGIES.put("add", args -> {
-        String fileName = args[1];
-        Repository.add(fileName);
-      });
+  private static void init(String[] args) {
+    try {
+      Repository.init();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
-      COMMAND_STRATEGIES.put("commit", args -> {
-        String commitMessage = args[1];
-        Repository.commit(commitMessage);
-      });
+  private static void add(String[] args) {
+    String fileName = args[1];
+    Repository.add(fileName);
+  }
 
-      COMMAND_STRATEGIES.put("log", args -> Repository.log());
+  private static void commit(String[] args) {
+    String commitMessage = args[1];
+    Repository.commit(commitMessage);
+  }
 
-      COMMAND_STRATEGIES.put("status", args -> Repository.status());
+  private static void log(String[] args) {
+    Repository.log();
+  }
 
-      COMMAND_STRATEGIES.put("rm", args -> {
-        String fileName = args[1];
-        Repository.rm(fileName);
-      });
+  private static void status(String[] args) {
+    Repository.status();
+  }
 
-      COMMAND_STRATEGIES.put("checkout", args -> {
-        int length = args.length;
-        if (length == 3) {
-          String fileName = args[2];
-          Repository.checkoutFile(fileName);
-        } else if (length == 4) {
-          String commitHash = args[1];
-          String fileName = args[3];
-          Repository.checkoutFileFromCommit(commitHash, fileName);
-        } else if (length == 2) {
-          // TODO: checkout branch
-          String branchName = args[1];
-          Repository.checkoutBranch(branchName);
-        }
-      });
+  private static void remove(String[] args) {
+    String fileName = args[1];
+    Repository.rm(fileName);
+  }
 
+  private static void checkout(String[] args) {
+    int length = args.length;
+    if (length == 3) {
+      String fileName = args[2];
+      Repository.checkoutFile(fileName);
+    } else if (length == 4) {
+      String commitHash = args[1];
+      String fileName = args[3];
+      Repository.checkoutFileFromCommit(commitHash, fileName);
+    } else if (length == 2) {
+      String branchName = args[1];
+      Repository.checkoutBranch(branchName);
+    }
+  }
 
-      COMMAND_STRATEGIES.put("branch", args -> {
-        String branchName = args[1];
-        try {
-          REPOSITORY.branch(branchName);
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-      });
+  private static void branch(String[] args) {
+    String branchName = args[1];
+    try {
+      REPOSITORY.branch(branchName);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 }

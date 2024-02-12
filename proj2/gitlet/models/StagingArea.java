@@ -16,7 +16,6 @@ import static gitlet.utils.Constants.STAGING_INDEX;
  **/
 public class StagingArea implements Serializable {
 
-
   /**
    * A HashMap that maps file name to blob hash
    */
@@ -55,6 +54,10 @@ public class StagingArea implements Serializable {
 
   public boolean contains(String fileName) {
     return stagedBlobs.containsKey(fileName) || removedBlobs.contains(fileName);
+  }
+
+  public boolean containsStageFroAddition(String fileName) {
+    return stagedBlobs.containsKey(fileName);
   }
 
   public void clearStagedBlob(String fileName) {

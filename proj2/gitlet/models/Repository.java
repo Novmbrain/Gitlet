@@ -5,7 +5,6 @@ import gitlet.utils.Utils;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystems;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -175,6 +174,7 @@ public class Repository {
 
   public static void log() {
     Commit commit = Head.getHEADCommit();
+
     while (true) {
       StringBuilder output = new StringBuilder();
       Date date = commit.getTimeStamp();
@@ -202,9 +202,15 @@ public class Repository {
      */
     StringBuilder output = new StringBuilder();
 
+    List<String> branches = plainFilenamesIn(REFS_HEADS_DIR);
+    Set<String> stagedForAdditionFiles = stagingArea.getStagedBlobs().keySet();
+    Set<String> stagedForRemovalFiles = stagingArea.getRemovedBlobs();
+    List<String> allFiles = plainFilenamesIn(CWD);
+
+
+
     output.append("=== Branches ===\n");
-    List<String> strings = plainFilenamesIn(REFS_HEADS_DIR);
-    strings.forEach(branchName -> {
+    branches.forEach(branchName -> {
       if (branchName.equals(currentBranch.getName())) {
         output.append("*").append(branchName).append("\n");
       } else {
@@ -214,31 +220,27 @@ public class Repository {
     output.append("\n");
 
     output.append("=== Staged Files ===\n");
-    stagingArea.getStagedBlobs().keySet().forEach(blobName -> output.append(blobName).append("\n"));
+    stagedForAdditionFiles.forEach(blobName -> output.append(blobName).append("\n"));
     output.append("\n");
 
     output.append("=== Removed Files ===\n");
-    stagingArea.getRemovedBlobs().forEach(blobName -> output.append(blobName).append("\n"));
+    stagedForRemovalFiles.forEach(blobName -> output.append(blobName).append("\n"));
     output.append("\n");
 
     output.append("=== Modifications Not Staged For Commit ===\n");
     output.append("\n");
+    // 1. Staged for addition, but with different contents than in the working directory;
 
-    // TODO:
-    /**
-     * append files that have been modified in the working directory, but not yet staged
-     */
+    // 2. Staged for addition, but deleted in the working directory;
 
-    /**
-     * append files that in the most recent commit have been modified in the working directory,
-     * but not yet staged
-     */
+    // 3. Not staged for addition, but with different contents than in the working directory;
+
+    // 4. Tracked in the working directory, but not in the staging area;
+
 
     output.append("=== Untracked Files ===\n");
-    // 1. the file in the most recent commits -> already tracked
-    // 2. the file in the staging area -> already staged
-    //   - staged
-    //   - removed
+    // The final category (“Untracked Files”) is for files present in the working directory but neither staged for addition nor tracked.
+    // This includes files that have been staged for removal, but then re-created without Gitlet’s knowledge.
     getUntrackedFiles().forEach(fileName -> output.append(fileName).append("\n"));
     output.append("\n");
 
@@ -255,12 +257,17 @@ public class Repository {
    * - nor tracked by the head commit.
    */
   private static Set<String> getUntrackedFiles() {
+    Set<String> stagedForRemovalFiles = stagingArea.getRemovedBlobs();
     List<String> workingDirectoryFiles = plainFilenamesIn(CWD);
+
     Set<String> committedFile = Head.getHEADCommit().getFileNameToBlobHash().keySet();
-    Set<String> untrackedFiles = workingDirectoryFiles.stream()
-      .filter(fileName -> !stagingArea.contains(fileName) && !committedFile.contains(fileName))
+    Set<String> collect1 = workingDirectoryFiles.stream()
+      .filter(fileName -> !stagingArea.containsStageFroAddition(fileName) && !committedFile.contains(fileName))
       .collect(Collectors.toSet());
-    return untrackedFiles;
+    Set<String> collect2 = workingDirectoryFiles.stream().filter(stagedForRemovalFiles::contains).collect(Collectors.toSet());
+    collect1.addAll(collect2);
+
+    return collect1;
   }
 
   /**
@@ -344,7 +351,7 @@ public class Repository {
   private static Branch getCurrentBranch() {
     String currentBranchTipCommitHash = readContentsAsString(new File(Head.getHEADCommitPath()));
 
-    String[] splitPath = Head.getHEADCommitPath().split(FileSystems.getDefault().getSeparator());
+    String[] splitPath = Head.getHEADCommitPath().split(System.getProperty("file.separator"));
     String currentBranchName = splitPath[splitPath.length - 1];
 
     return new Branch(currentBranchName, currentBranchTipCommitHash);

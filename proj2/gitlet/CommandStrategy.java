@@ -41,6 +41,8 @@ public class CommandStrategy{
   }
 
   private static void find(String[] args) {
+    String commitMessage = args[1];
+    Repository.find(commitMessage);
   }
 
   private static void globalLog(String[] args) {

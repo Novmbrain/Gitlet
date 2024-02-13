@@ -1,0 +1,13 @@
+> init
+<<<
+
++ a.txt a.txt
+> add a.txt
+<<<
+
+> commit "add a.txt"
+<<<
+
+> find "add b.txt"
+Found no commit with that message.
+<<<

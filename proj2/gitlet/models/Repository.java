@@ -361,6 +361,40 @@ public class Repository {
   // TODO Consider applying Decision tree pruning
   //In my implementation, the commit log will be sorted in descending order of the commit time stamp.
   public static void globalLog() {
+    Set<Commit> allCommit = getAllCommits();
+
+    allCommit.stream()
+      .sorted((c1, c2) -> c2.getTimeStamp().compareTo(c1.getTimeStamp()))
+      .forEach(Repository::logCommit);
+  }
+
+  private static void logCommit(Commit commit) {
+    StringBuilder output = new StringBuilder();
+    Date date = commit.getTimeStamp();
+    String formattedDate = String.format("Date: %ta %tb %td %tT %tY %tz", date, date, date, date, date, date);
+
+    output.append(
+      "===\n" +
+        "commit " + commit.sha1Hash() + "\n" +
+        formattedDate + "\n" +
+        commit.getMessage() + "\n");
+
+    System.out.println(output);
+  }
+
+  public static void find(String commitMessage) {
+    Set<Commit> allCommit = getAllCommits();
+
+    if (allCommit.stream().noneMatch(commit -> commit.getMessage().equals(commitMessage))) {
+      messageAndExit("Found no commit with that message.");
+    }
+
+    allCommit.stream()
+      .filter(commit -> commit.getMessage().equals(commitMessage))
+      .forEach(commit -> System.out.println(commit.sha1Hash()));
+  }
+
+  private static Set<Commit> getAllCommits() {
     Set<Commit> allTipCommits = plainFilenamesIn(REFS_HEADS_DIR)
       .stream()
       .map(branchName ->
@@ -381,24 +415,7 @@ public class Repository {
         }
       }
     }
-
-    allCommit.stream()
-      .sorted((c1, c2) -> c2.getTimeStamp().compareTo(c1.getTimeStamp()))
-      .forEach(Repository::logCommit);
-  }
-
-  private static void logCommit(Commit commit) {
-    StringBuilder output = new StringBuilder();
-    Date date = commit.getTimeStamp();
-    String formattedDate = String.format("Date: %ta %tb %td %tT %tY %tz", date, date, date, date, date, date);
-
-    output.append(
-      "===\n" +
-        "commit " + commit.sha1Hash() + "\n" +
-        formattedDate + "\n" +
-        commit.getMessage() + "\n");
-
-    System.out.println(output);
+    return allCommit;
   }
 
 

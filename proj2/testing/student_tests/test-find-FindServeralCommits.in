@@ -1,0 +1,48 @@
+I definitions.inc
+
+> init
+<<<
+
+> branch new
+<<<
+
++ a.txt a.txt
+> add a.txt
+<<<
+
+> commit "add a file"
+<<<
+
+> checkout new
+<<<
+
++ b.txt b.txt
+> add b.txt
+<<<
+
+> commit "add a file"
+<<<
+
+
+> global-log
+===
+${COMMIT_HEAD}
+add a file
+
+===
+${COMMIT_HEAD}
+add a file
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+
+D UID1 "${1}"
+D UID2 "${2}"
+
+> find "add a file"
+${UID1}
+${UID2}
+<<<*

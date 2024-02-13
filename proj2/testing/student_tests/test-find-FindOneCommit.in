@@ -1,0 +1,28 @@
+I definitions.inc
+
+> init
+<<<
+
++ a.txt a.txt
+> add a.txt
+<<<
+
+> commit "add a.txt"
+<<<
+
+> log
+===
+${COMMIT_HEAD}
+add a.txt
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+
+D UID1 "${1}"
+
+> find "add a.txt"
+${UID1}
+<<<*

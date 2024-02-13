@@ -44,6 +44,7 @@ public class CommandStrategy{
   }
 
   private static void globalLog(String[] args) {
+    Repository.globalLog();
   }
 
   private static void init(String[] args) {

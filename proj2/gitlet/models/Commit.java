@@ -6,6 +6,7 @@ import gitlet.utils.Utils;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Objects;
 
 import static gitlet.utils.Constants.CWD;
 
@@ -108,5 +109,18 @@ public class Commit extends GitletObject {
   public Blob getBlob(String fileName) {
     String blobHash = fileNameToBlobHash.get(fileName);
     return ObjectsHelper.getBlob(blobHash);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Commit commit = (Commit) o;
+    return Objects.equals(message, commit.message) && Objects.equals(timeStamp, commit.timeStamp) && Objects.equals(fileNameToBlobHash, commit.fileNameToBlobHash) && Objects.equals(parentHash, commit.parentHash);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(message, timeStamp, fileNameToBlobHash, parentHash);
   }
 }

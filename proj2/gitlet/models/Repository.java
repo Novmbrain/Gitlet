@@ -6,6 +6,7 @@ import gitlet.utils.Utils;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -176,17 +177,7 @@ public class Repository {
     Commit commit = Head.getHEADCommit();
 
     while (true) {
-      StringBuilder output = new StringBuilder();
-      Date date = commit.getTimeStamp();
-      String formattedDate = String.format("Date: %ta %tb %td %tT %tY %tz", date, date, date, date, date, date);
-
-      output.append(
-        "===\n" +
-          "commit " + commit.sha1Hash() + "\n" +
-          formattedDate + "\n" +
-          commit.getMessage() + "\n");
-
-      System.out.println(output);
+      logCommit(commit);
 
       if (commit.isInitialCommit()) {
         break;
@@ -365,6 +356,51 @@ public class Repository {
       join(REFS_HEADS_DIR, branchName).delete();
     }
   }
+
+
+  // TODO Consider applying Decision tree pruning
+  //In my implementation, the commit log will be sorted in descending order of the commit time stamp.
+  public static void globalLog() {
+    Set<Commit> allTipCommits = plainFilenamesIn(REFS_HEADS_DIR)
+      .stream()
+      .map(branchName ->
+        ObjectsHelper.getCommit(readContentsAsString(join(REFS_HEADS_DIR, branchName))))
+      .collect(Collectors.toSet());
+
+    Set<Commit> allCommit = new HashSet<>();
+
+    for (Commit tipCommit : allTipCommits) {
+      while (true) {
+
+        allCommit.add(tipCommit);
+
+        if (tipCommit.isInitialCommit()) {
+          break;
+        } else {
+          tipCommit = tipCommit.getParentCommit();
+        }
+      }
+    }
+
+    allCommit.stream()
+      .sorted((c1, c2) -> c2.getTimeStamp().compareTo(c1.getTimeStamp()))
+      .forEach(Repository::logCommit);
+  }
+
+  private static void logCommit(Commit commit) {
+    StringBuilder output = new StringBuilder();
+    Date date = commit.getTimeStamp();
+    String formattedDate = String.format("Date: %ta %tb %td %tT %tY %tz", date, date, date, date, date, date);
+
+    output.append(
+      "===\n" +
+        "commit " + commit.sha1Hash() + "\n" +
+        formattedDate + "\n" +
+        commit.getMessage() + "\n");
+
+    System.out.println(output);
+  }
+
 
   public void branch(String branchName) throws IOException {
     if (Branch.branchExists(branchName)) {

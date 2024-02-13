@@ -1,0 +1,39 @@
+I definitions.inc
+
+> init
+<<<
+
+> branch new
+<<<
+
++ a.txt a.txt
+> add a.txt
+<<<
+
+> commit "add a.txt"
+<<<
+
+> checkout new
+<<<
+
++ b.txt b.txt
+> add b.txt
+<<<
+
+> commit "add b.txt"
+<<<
+
+> global-log
+===
+${COMMIT_HEAD}
+add b.txt
+
+===
+${COMMIT_HEAD}
+add a.txt
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*

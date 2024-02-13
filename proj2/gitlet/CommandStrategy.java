@@ -26,6 +26,24 @@ public class CommandStrategy{
     COMMAND_STRATEGIES.put("rm", CommandStrategy::remove);
     COMMAND_STRATEGIES.put("checkout", CommandStrategy::checkout);
     COMMAND_STRATEGIES.put("branch", CommandStrategy::branch);
+    COMMAND_STRATEGIES.put("global-log", CommandStrategy::globalLog);
+    COMMAND_STRATEGIES.put("find", CommandStrategy::find);
+    COMMAND_STRATEGIES.put("reset", CommandStrategy::reset);
+    COMMAND_STRATEGIES.put("rm-branch", CommandStrategy::rmBranch);
+  }
+
+  private static void rmBranch(String[] args) {
+    String branchName = args[1];
+    Repository.rmBranch(branchName);
+  }
+
+  private static void reset(String[] args) {
+  }
+
+  private static void find(String[] args) {
+  }
+
+  private static void globalLog(String[] args) {
   }
 
   private static void init(String[] args) {

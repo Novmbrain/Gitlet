@@ -1,0 +1,6 @@
+> init
+<<<
+
+> rm-branch non-exiting-branch
+A branch with that name does not exist.
+<<<

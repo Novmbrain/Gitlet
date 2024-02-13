@@ -290,7 +290,8 @@ public class Repository {
 
   public static void checkoutFileFromCommit(String commitHash, String fileName) {
     if (!ObjectsHelper.objectExists(commitHash)) {
-      messageAndExit("No commit with that id exists.");
+      messageAndExit("No commit" +
+        " with that id exists.");
     } else {
       Commit commit = ObjectsHelper.getCommit(commitHash);
 
@@ -355,6 +356,16 @@ public class Repository {
     return new Branch(currentBranchName, currentBranchTipCommitHash);
   }
 
+  public static void rmBranch(String branchName) {
+    if (!Branch.branchExists(branchName)) {
+      messageAndExit("A branch with that name does not exist.");
+    } else if (branchName.equals(currentBranch.getName())) {
+      messageAndExit("Cannot remove the current branch.");
+    } else {
+      join(REFS_HEADS_DIR, branchName).delete();
+    }
+  }
+
   public void branch(String branchName) throws IOException {
     if (Branch.branchExists(branchName)) {
       messageAndExit("A branch with that name already exists.");
@@ -367,8 +378,5 @@ public class Repository {
       branch.persist();
     }
   }
-
-  // TODO: checkout branch
-
 
 }

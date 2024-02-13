@@ -391,6 +391,7 @@ public class Repository {
 
     allCommit.stream()
       .filter(commit -> commit.getMessage().equals(commitMessage))
+      .sorted((c1, c2) -> c2.getTimeStamp().compareTo(c1.getTimeStamp()))
       .forEach(commit -> System.out.println(commit.sha1Hash()));
   }
 

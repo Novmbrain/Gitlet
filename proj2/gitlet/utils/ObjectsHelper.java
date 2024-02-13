@@ -5,8 +5,11 @@ import gitlet.models.Commit;
 import gitlet.models.GitletObject;
 
 import java.io.File;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static gitlet.utils.Constants.OBJECTS_DIR;
+import static gitlet.utils.Utils.messageAndExit;
 
 /**
  * @className: ObjectsHelper
@@ -16,11 +19,24 @@ import static gitlet.utils.Constants.OBJECTS_DIR;
  **/
 public class ObjectsHelper {
   public static Commit getCommit(String commitHash) {
+    if (commitHash.length() < 2) {
+      messageAndExit("The commit hash is too short.");
+    }
+
     String index = commitHash.substring(0, 2);
     String rest = commitHash.substring(2);
-    File indexDirectory = Utils.join(OBJECTS_DIR, index);
 
-    return Utils.readObject(Utils.join(indexDirectory, rest), Commit.class);
+    File indexDirectory = Utils.join(OBJECTS_DIR, index);
+    // List all files in the directory matching the abbreviated ID
+    List<String> matchingFiles = Utils.plainFilenamesIn(indexDirectory).stream().filter(name -> name.startsWith(rest)).collect(Collectors.toList());
+
+    if (matchingFiles.isEmpty()) {
+      messageAndExit("No commit with that id exists.");
+    } else if (matchingFiles.size() > 1) {
+      messageAndExit("Multiple commits with that id exist.");
+    }
+
+    return Utils.readObject(Utils.join(indexDirectory, matchingFiles.get(0)), Commit.class);
   }
 
   public static Blob getBlob(String blobHash) {
@@ -46,6 +62,13 @@ public class ObjectsHelper {
     String rest = hash.substring(2);
     File indexDirectory = Utils.join(OBJECTS_DIR, index);
 
-    return Utils.join(indexDirectory, rest).exists();
+    List<String> matchingFiles = Utils.plainFilenamesIn(indexDirectory).stream().filter(name -> name.startsWith(rest)).collect(Collectors.toList());
+
+    if (matchingFiles.isEmpty()) {
+      messageAndExit("No commit with that id exists.");
+    } else if (matchingFiles.size() > 1) {
+      messageAndExit("Multiple commits with that id exist.");
+    }
+    return matchingFiles.size() == 1;
   }
 }

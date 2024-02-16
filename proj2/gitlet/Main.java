@@ -15,6 +15,8 @@ import static gitlet.utils.Utils.messageAndExit;
  * @author TODO
  */
 public class Main {
+  private static final Repository repository = new Repository();
+  private static final CommandStrategy commandStrategy = new CommandStrategy();
 
   /**
    * Usage: java gitlet.Main ARGS, where ARGS contains
@@ -34,10 +36,10 @@ public class Main {
 
     if (!COMMAND_STRATEGIES.containsKey(commandType)) {
       messageAndExit("No command with that name exists.");
-    } else if (!commandType.equals("init") && !Repository.gitletExists()) {
+    } else if (!commandType.equals("init") && !repository.gitletExists()) {
       messageAndExit("Not in an initialized Gitlet directory.");
     }
 
-    COMMAND_STRATEGIES.get(commandType).accept(args);
+    commandStrategy.execute(commandType, args, repository);
   }
 }

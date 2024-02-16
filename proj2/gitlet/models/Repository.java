@@ -47,16 +47,16 @@ public class Repository {
     }
   }
 
-  private static String readFileFromRepositoryAsString(String fileName) {
+  private String readFileFromRepositoryAsString(String fileName) {
     return readContentsAsString(join(CWD, fileName));
   }
 
-  public static boolean isFileExistInRepository(String fileName) {
+  public  boolean isFileExistInRepository(String fileName) {
     return plainFilenamesIn(CWD).stream().anyMatch(name -> name.equals(fileName));
   }
 
   // TODO: add a strict mode to check if the current working directory is a gitlet repository
-  public static boolean gitletExists() {
+  public  boolean gitletExists() {
     return GITLET_DIR.exists();
   }
 
@@ -64,8 +64,8 @@ public class Repository {
    * Create a new .gitlet directory in the current directory.
    * Inside .gitlet, create objects, refs directories and HEAD and logs files
    */
-  public static void init() throws IOException {
-    if (Repository.gitletExists()) {
+  public void init() throws IOException {
+    if (this.gitletExists()) {
       messageAndExit("A Gitlet version-control system already exists in the current directory.");
     }
 
@@ -75,11 +75,11 @@ public class Repository {
     stagingArea.persist();
   }
 
-  private static void persistHEAD() {
+  private void persistHEAD() {
     writeContents(HEAD_FILE, join(REFS_HEADS_DIR, currentBranch.getName()).toString());
   }
 
-  private static void makeDirectory() throws IOException {
+  private void makeDirectory() throws IOException {
     GITLET_DIR.mkdir();
     OBJECTS_DIR.mkdir();
     REFS_DIR.mkdir();
@@ -89,7 +89,7 @@ public class Repository {
     STAGING_INDEX.createNewFile();
   }
 
-  public static void createBranchMaster() throws IOException {
+  public  void createBranchMaster() throws IOException {
     // Create and persist the initial initialCommit
     Commit initialCommit = new Commit(INITIAL_COMMIT_MESSAGE, new Date(0));
     initialCommit.persist();
@@ -106,7 +106,7 @@ public class Repository {
     join(LOGS_DIR, MASTER).createNewFile();
   }
 
-  public static void add(String fileName) {
+  public  void add(String fileName) {
     if (!isFileExistInRepository(fileName)) {
       messageAndExit("File does not exist.");
     }
@@ -114,7 +114,7 @@ public class Repository {
     // if the file is identical to the version in the current commit, do not stage it to be added
     // -- case 1: the file is not in the staging area -> do nothing
     // -- case 2: the file is in the staging area -> remove it from the staging area
-    if (Head.getHEADCommit().isFileContentHashMatching(fileName)) {
+    if (Head.getHEADCommit().isFileHashMatching(fileName)) {
       if (stagingArea.contains(fileName)) {
         stagingArea.clearStagedBlob(fileName);
       }
@@ -128,7 +128,7 @@ public class Repository {
     stagingArea.persist();
   }
 
-  public static void rm(String fileName) {
+  public  void rm(String fileName) {
     if (!Head.contains(fileName) && !stagingArea.contains(fileName)) {
       messageAndExit("No reason to remove the file.");
     } else {
@@ -150,7 +150,7 @@ public class Repository {
     }
   }
 
-  public static void commit(String message) {
+  public  void commit(String message) {
     if (stagingArea.isEmpty()) {
       messageAndExit("No changes added to the commit.");
     } else if (message.isEmpty()) {
@@ -173,7 +173,7 @@ public class Repository {
     }
   }
 
-  public static void log() {
+  public  void log() {
     Commit commit = Head.getHEADCommit();
 
     while (true) {
@@ -187,7 +187,7 @@ public class Repository {
     }
   }
 
-  public static void status() {
+  public  void status() {
     /**
      * tracked files = check staging files + check committed files
      */
@@ -245,7 +245,7 @@ public class Repository {
    * - neither staged for addition
    * - nor tracked by the head commit.
    */
-  private static Set<String> getUntrackedFiles() {
+  private  Set<String> getUntrackedFiles() {
     Set<String> stagedForRemovalFiles = stagingArea.getRemovedBlobs();
     List<String> workingDirectoryFiles = plainFilenamesIn(CWD);
 
@@ -265,7 +265,7 @@ public class Repository {
    *
    * @param fileName
    */
-  public static void checkoutFile(String fileName) {
+  public  void checkoutFile(String fileName) {
     if (!Head.contains(fileName)) {
       messageAndExit("File does not exist in that commit.");
     } else {
@@ -279,7 +279,7 @@ public class Repository {
     }
   }
 
-  public static void checkoutFileFromCommit(String commitHash, String fileName) {
+  public  void checkoutFileFromCommit(String commitHash, String fileName) {
     if (!ObjectsHelper.objectExists(commitHash)) {
       messageAndExit("No commit" +
         " with that id exists.");
@@ -300,14 +300,14 @@ public class Repository {
     }
   }
 
-  public static void checkoutBranch(String branchName) {
+  public  void checkoutBranch(String branchName) {
     if (!Branch.branchExists(branchName)) {
       messageAndExit("No such branch exists.");
     } else if (branchName.equals(currentBranch.getName())) {
       messageAndExit("No need to checkout the current branch.");
     } else {
 
-      Commit newBranchTipCommit = ObjectsHelper.getCommit(readContentsAsString(join(REFS_HEADS_DIR, branchName)));
+      Commit newBranchTipCommit = ObjectsHelper.getBranchTipCommit(branchName);
 
       newBranchTipCommit.getFileNameToBlobHash().keySet().forEach(fileName -> {
         if (getUntrackedFiles().contains(fileName)) {
@@ -334,11 +334,10 @@ public class Repository {
       persistHEAD();
       stagingArea.persist();
     }
-
   }
 
 
-  private static Branch getCurrentBranch() {
+  private  Branch getCurrentBranch() {
     String currentBranchTipCommitHash = readContentsAsString(new File(Head.getHEADCommitPath()));
 
     String[] splitPath = Head.getHEADCommitPath().split(System.getProperty("file.separator"));
@@ -347,7 +346,7 @@ public class Repository {
     return new Branch(currentBranchName, currentBranchTipCommitHash);
   }
 
-  public static void rmBranch(String branchName) {
+  public  void rmBranch(String branchName) {
     if (!Branch.branchExists(branchName)) {
       messageAndExit("A branch with that name does not exist.");
     } else if (branchName.equals(currentBranch.getName())) {
@@ -360,15 +359,15 @@ public class Repository {
 
   // TODO Consider applying Decision tree pruning
   //In my implementation, the commit log will be sorted in descending order of the commit time stamp.
-  public static void globalLog() {
+  public  void globalLog() {
     Set<Commit> allCommit = getAllCommits();
 
     allCommit.stream()
       .sorted((c1, c2) -> c2.getTimeStamp().compareTo(c1.getTimeStamp()))
-      .forEach(Repository::logCommit);
+      .forEach(this::logCommit);
   }
 
-  private static void logCommit(Commit commit) {
+  private  void logCommit(Commit commit) {
     StringBuilder output = new StringBuilder();
     Date date = commit.getTimeStamp();
     String formattedDate = String.format("Date: %ta %tb %td %tT %tY %tz", date, date, date, date, date, date);
@@ -382,7 +381,7 @@ public class Repository {
     System.out.println(output);
   }
 
-  public static void find(String commitMessage) {
+  public  void find(String commitMessage) {
     Set<Commit> allCommit = getAllCommits();
 
     if (allCommit.stream().noneMatch(commit -> commit.getMessage().equals(commitMessage))) {
@@ -395,7 +394,7 @@ public class Repository {
       .forEach(commit -> System.out.println(commit.sha1Hash()));
   }
 
-  private static Set<Commit> getAllCommits() {
+  private  Set<Commit> getAllCommits() {
     Set<Commit> allTipCommits = plainFilenamesIn(REFS_HEADS_DIR)
       .stream()
       .map(branchName ->
@@ -419,8 +418,41 @@ public class Repository {
     return allCommit;
   }
 
+  public  void merge(String givenBranchName) {
+    if (!Branch.branchExists(givenBranchName)) {
+      messageAndExit("A branch with that name does not exist.");
+    } else if (givenBranchName.equals(currentBranch.getName())) {
+      messageAndExit("Cannot merge a branch with itself.");
+    } else {
+      // TODO: Consider to put the tip commit as a field of the Class Branch
+      Commit givenBranchTipCommit = ObjectsHelper.getBranchTipCommit(givenBranchName);
+      Commit currentBranchTipCommit = ObjectsHelper.getCommit(currentBranch.getTipHash());
 
-  public void branch(String branchName) throws IOException {
+
+    }
+  }
+
+  private  Commit findLastCommonAncestor(Commit commit1, Commit commit2) {
+    Set<Commit> commit1Ancestors = new HashSet<>();
+    Set<Commit> commit2Ancestors = new HashSet<>();
+
+    while (commit1 != null) {
+      commit1Ancestors.add(commit1);
+      commit1 = commit1.getParentCommit();
+    }
+
+    while (commit2 != null) {
+      commit2Ancestors.add(commit2);
+      commit2 = commit2.getParentCommit();
+    }
+
+    commit1Ancestors.retainAll(commit2Ancestors);
+
+    return commit1Ancestors.stream().max((c1, c2) -> c2.getTimeStamp().compareTo(c1.getTimeStamp())).orElse(null);
+  }
+
+
+  public  void branch(String branchName) throws IOException {
     if (Branch.branchExists(branchName)) {
       messageAndExit("A branch with that name already exists.");
     } else {

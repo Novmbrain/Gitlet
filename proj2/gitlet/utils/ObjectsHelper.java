@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static gitlet.utils.Constants.OBJECTS_DIR;
-import static gitlet.utils.Utils.messageAndExit;
+import static gitlet.utils.Constants.REFS_HEADS_DIR;
+import static gitlet.utils.Utils.*;
 
 /**
  * @className: ObjectsHelper
@@ -56,8 +57,7 @@ public class ObjectsHelper {
     Utils.writeObject(Utils.join(indexDirectory, rest), object);
   }
 
-  public static boolean objectExists(String hash)
-  {
+  public static boolean objectExists(String hash) {
     String index = hash.substring(0, 2);
     String rest = hash.substring(2);
     File indexDirectory = Utils.join(OBJECTS_DIR, index);
@@ -70,5 +70,10 @@ public class ObjectsHelper {
       messageAndExit("Multiple commits with that id exist.");
     }
     return matchingFiles.size() == 1;
+  }
+
+
+  public static Commit getBranchTipCommit(String branchName) {
+    return ObjectsHelper.getCommit(readContentsAsString(join(REFS_HEADS_DIR, branchName)));
   }
 }

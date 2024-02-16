@@ -5,7 +5,7 @@ import gitlet.models.Repository;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 /**
  * @className: Command
@@ -13,94 +13,104 @@ import java.util.function.Consumer;
  * @author: Wenjie FU
  * @date: 06/02/2024
  **/
-public class CommandStrategy{
-  public static final Map<String, Consumer<String[]>> COMMAND_STRATEGIES = new HashMap<>();
-  public static final Repository REPOSITORY = new Repository();
-
-  static {
-    COMMAND_STRATEGIES.put("init", CommandStrategy::init);
-    COMMAND_STRATEGIES.put("add", CommandStrategy::add);
-    COMMAND_STRATEGIES.put("commit", CommandStrategy::commit);
-    COMMAND_STRATEGIES.put("log", CommandStrategy::log);
-    COMMAND_STRATEGIES.put("status", CommandStrategy::status);
-    COMMAND_STRATEGIES.put("rm", CommandStrategy::remove);
-    COMMAND_STRATEGIES.put("checkout", CommandStrategy::checkout);
-    COMMAND_STRATEGIES.put("branch", CommandStrategy::branch);
-    COMMAND_STRATEGIES.put("global-log", CommandStrategy::globalLog);
-    COMMAND_STRATEGIES.put("find", CommandStrategy::find);
-    COMMAND_STRATEGIES.put("reset", CommandStrategy::reset);
-    COMMAND_STRATEGIES.put("rm-branch", CommandStrategy::rmBranch);
+public class CommandStrategy {
+  public static final Map<String, BiConsumer<String[], Repository>> COMMAND_STRATEGIES = new HashMap<>();
+  CommandStrategy() {
+    COMMAND_STRATEGIES.put("init", this::init);
+    COMMAND_STRATEGIES.put("add", this::add);
+    COMMAND_STRATEGIES.put("commit", this::commit);
+    COMMAND_STRATEGIES.put("log", this::log);
+    COMMAND_STRATEGIES.put("status", this::status);
+    COMMAND_STRATEGIES.put("rm", this::remove);
+    COMMAND_STRATEGIES.put("checkout", this::checkout);
+    COMMAND_STRATEGIES.put("branch", this::branch);
+    COMMAND_STRATEGIES.put("global-log", this::globalLog);
+    COMMAND_STRATEGIES.put("find", this::find);
+    COMMAND_STRATEGIES.put("reset", this::reset);
+    COMMAND_STRATEGIES.put("rm-branch", this::rmBranch);
+    COMMAND_STRATEGIES.put("merge", this::merge);
   }
 
-  private static void rmBranch(String[] args) {
+  private void merge(String[] strings, Repository repository) {
+    String branchName = strings[1];
+    repository.merge(branchName);
+  }
+
+  private void rmBranch(String[] args, Repository repository) {
     String branchName = args[1];
-    Repository.rmBranch(branchName);
+    repository.rmBranch(branchName);
   }
 
-  private static void reset(String[] args) {
+  private void reset(String[] args, Repository repository) {
+    String commitHash = args[1];
+    //repository.reset(commitHash);
   }
 
-  private static void find(String[] args) {
+  private void find(String[] args, Repository repository) {
     String commitMessage = args[1];
-    Repository.find(commitMessage);
+    repository.find(commitMessage);
   }
 
-  private static void globalLog(String[] args) {
-    Repository.globalLog();
+  private void globalLog(String[] args, Repository repository) {
+    repository.globalLog();
   }
 
-  private static void init(String[] args) {
+  private void init(String[] args, Repository repository) {
     try {
-      Repository.init();
+      repository.init();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
 
-  private static void add(String[] args) {
+  private void add(String[] args, Repository repository) {
     String fileName = args[1];
-    Repository.add(fileName);
+    repository.add(fileName);
   }
 
-  private static void commit(String[] args) {
+  private void commit(String[] args, Repository repository) {
     String commitMessage = args[1];
-    Repository.commit(commitMessage);
+    repository.commit(commitMessage);
   }
 
-  private static void log(String[] args) {
-    Repository.log();
+  private void log(String[] args, Repository repository) {
+    repository.log();
   }
 
-  private static void status(String[] args) {
-    Repository.status();
+  private void status(String[] args, Repository repository) {
+    repository.status();
   }
 
-  private static void remove(String[] args) {
+  private void remove(String[] args, Repository repository) {
     String fileName = args[1];
-    Repository.rm(fileName);
+    repository.rm(fileName);
   }
 
-  private static void checkout(String[] args) {
+  private void checkout(String[] args, Repository repository) {
     int length = args.length;
     if (length == 3) {
       String fileName = args[2];
-      Repository.checkoutFile(fileName);
+      repository.checkoutFile(fileName);
     } else if (length == 4) {
       String commitHash = args[1];
       String fileName = args[3];
-      Repository.checkoutFileFromCommit(commitHash, fileName);
+      repository.checkoutFileFromCommit(commitHash, fileName);
     } else if (length == 2) {
       String branchName = args[1];
-      Repository.checkoutBranch(branchName);
+      repository.checkoutBranch(branchName);
     }
   }
 
-  private static void branch(String[] args) {
+  private void branch(String[] args, Repository repository) {
     String branchName = args[1];
     try {
-      REPOSITORY.branch(branchName);
+      repository.branch(branchName);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public void execute(String commandType, String[] args, Repository repository) {
+    COMMAND_STRATEGIES.get(commandType).accept(args, repository);
   }
 }

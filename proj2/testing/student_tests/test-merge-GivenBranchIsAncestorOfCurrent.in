@@ -1,0 +1,33 @@
+> init
+<<<
+
+> branch given-branch
+<<<
+
+> checkout given-branch
+<<<
+
++ a.txt a.txt
+> add a.txt
+<<<
+
+> commit "add a.txt"
+<<<
+
+
+> branch main
+<<<
+
+> checkout main
+<<<
+
++ b.txt b.txt
+> add b.txt
+<<<
+
+> commit "add b.txt"
+<<<
+
+> merge given-branch
+Given branch is an ancestor of the current branch
+<<<

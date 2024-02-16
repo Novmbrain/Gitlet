@@ -1,0 +1,13 @@
+> init
+<<<
+
+> branch new
+<<<
+
++ a.txt a.txt
+> add  a.txt
+<<<
+
+> merge new
+You have uncommitted changes.
+<<<

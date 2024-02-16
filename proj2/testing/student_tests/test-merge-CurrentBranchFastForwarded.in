@@ -1,0 +1,31 @@
+> init
+<<<
+
++ a.txt a.txt
+> add a.txt
+<<<
+
+> commit "add a.txt"
+<<<
+
+> branch given-branch
+<<<
+
+> checkout given-branch
+<<<
+
++ b.txt b.txt
+> add b.txt
+<<<
+
+> commit "add b.txt"
+<<<
+
+> checkout master
+<<<
+
+> merge given-branch
+Current branch fast-forwarded.
+<<<
+
+> log

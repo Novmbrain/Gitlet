@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.Formatter;
 import java.util.List;
 
+import static gitlet.utils.Constants.CWD;
+
 
 /** Assorted utilities.
  *
@@ -233,5 +235,14 @@ public class Utils {
     public static void messageAndExit(String message) {
         System.out.println(message);
         System.exit(0);
+    }
+
+
+    public static String readFileFromRepositoryAsString(String fileName) {
+        return readContentsAsString(join(CWD, fileName));
+    }
+
+    public static boolean isFileExistInRepository(String fileName) {
+        return plainFilenamesIn(CWD).stream().anyMatch(name -> name.equals(fileName));
     }
 }

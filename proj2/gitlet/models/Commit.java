@@ -7,6 +7,7 @@ import gitlet.utils.Utils;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.Set;
 
 import static gitlet.utils.Constants.CWD;
 
@@ -70,8 +71,6 @@ public class Commit extends GitletObject {
   }
 
   public void updateIndex(StagingArea stagingArea) {
-    HashMap<String, String> stagedBlobs = stagingArea.getStagedBlobs();
-
     stagingArea.getStagedBlobs().forEach((fileName, blobHash) -> {
       if (fileNameToBlobHash.containsKey(fileName)) {
         fileNameToBlobHash.replace(fileName, blobHash);
@@ -136,6 +135,10 @@ public class Commit extends GitletObject {
   @Override
   public int hashCode() {
     return Objects.hash(message, timeStamp, fileNameToBlobHash, parentHash);
+  }
+
+  public Set<String> getAllFiles() {
+    return this.fileNameToBlobHash.keySet();
   }
 
 }

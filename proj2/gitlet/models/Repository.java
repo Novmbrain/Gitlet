@@ -49,14 +49,6 @@ public class Repository {
     return new File(path).getName();
   }
 
-  private String readFileFromRepositoryAsString(String fileName) {
-    return readContentsAsString(join(CWD, fileName));
-  }
-
-  public boolean isFileExistInRepository(String fileName) {
-    return plainFilenamesIn(CWD).stream().anyMatch(name -> name.equals(fileName));
-  }
-
   // TODO: add a strict mode to check if the current working directory is a gitlet repository
   public boolean gitletExists() {
     return GITLET_DIR.exists();
@@ -246,12 +238,12 @@ public class Repository {
    * - nor tracked by the head commit.
    */
   private Set<String> getUntrackedFiles() {
-    Set<String> committedFile = Head.getHEADCommit().getFileNameToBlobHash().keySet();
+    Set<String> committedFile = Head.getHEADCommit().getAllFiles();
 
     return plainFilenamesIn(CWD).stream()
       .filter(fileName ->
         !stagingArea.StageForAdditionContains(fileName) && !committedFile.contains(fileName)
-        || stagingArea.StageForRemovalContains(fileName))
+          || stagingArea.StageForRemovalContains(fileName))
       .collect(Collectors.toSet());
   }
 
@@ -305,13 +297,12 @@ public class Repository {
 
       Commit newBranchTipCommit = ObjectsHelper.getBranchTipCommit(branchName);
 
-      newBranchTipCommit.getFileNameToBlobHash().keySet().forEach(fileName -> {
-        if (getUntrackedFiles().contains(fileName)) {
-          messageAndExit("There is an untracked file in the way; delete it, or add and commit it first.");
-        }
-      });
+      newBranchTipCommit.getAllFiles().stream()
+        .filter(getUntrackedFiles()::contains)
+        .findFirst()
+        .ifPresent(file -> messageAndExit("There is an untracked file in the way; delete it, or add and commit it first."));
 
-      Head.getHEADCommit().getFileNameToBlobHash().keySet().forEach(fileName ->
+      Head.getHEADCommit().getAllFiles().forEach(fileName ->
         Utils.restrictedDelete(join(CWD, fileName))
       );
 
@@ -321,7 +312,7 @@ public class Repository {
       stagingArea.removeAllMapping();
 
       // overwrite the files in the working directory with the version in the newBranchTipCommit
-      newBranchTipCommit.getFileNameToBlobHash().keySet().forEach(fileName -> {
+      newBranchTipCommit.getAllFiles().forEach(fileName -> {
         Blob blob = newBranchTipCommit.getBlob(fileName);
         writeContents(join(CWD, fileName), blob.getContent());
       });

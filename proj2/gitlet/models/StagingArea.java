@@ -1,12 +1,13 @@
 package gitlet.models;
 
-import gitlet.utils.Utils;
-
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import static gitlet.utils.Constants.OBJECTS_DIR;
 import static gitlet.utils.Constants.STAGING_INDEX;
+import static gitlet.utils.Utils.join;
+import static gitlet.utils.Utils.writeObject;
 
 /**
  * @className: StagingArea
@@ -49,7 +50,7 @@ public class StagingArea implements Serializable {
   }
 
   public void persist() {
-    Utils.writeObject(STAGING_INDEX, this);
+    writeObject(STAGING_INDEX, this);
   }
 
   public boolean contains(String fileName) {
@@ -65,14 +66,12 @@ public class StagingArea implements Serializable {
   }
 
   public void clearStagedBlob(String fileName) {
-    Utils.restrictedDelete(stagedBlobs.get(fileName));
+    join(OBJECTS_DIR, fileName).delete();
     stagedBlobs.remove(fileName);
   }
 
   public void clearAllStagedBlobs() {
-    for (String fileName : stagedBlobs.keySet()) {
-      Utils.restrictedDelete(stagedBlobs.get(fileName));
-    }
+    stagedBlobs.keySet().forEach(fileName -> join(OBJECTS_DIR,fileName).delete());
     stagedBlobs.clear();
   }
 

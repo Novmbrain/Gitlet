@@ -36,8 +36,7 @@ public class Repository {
    */
   public Repository() {
     if (gitletExists()) {
-      // load the staging area
-      stagingArea = readObject(STAGING_INDEX, StagingArea.class);
+      stagingArea = StagingArea.load();
       currentBranch = getCurrentBranch();
     } else {
       stagingArea = new StagingArea();
@@ -45,8 +44,7 @@ public class Repository {
   }
 
   private static String getCurrentBranchName() {
-    String path = Head.getHEADCommitPath();
-    return new File(path).getName();
+    return new File(Head.getHEADCommitPath()).getName();
   }
 
   // TODO: add a strict mode to check if the current working directory is a gitlet repository
@@ -65,7 +63,6 @@ public class Repository {
 
     makeDirectory();
     createBranchMaster();
-
     writeContents(HEAD_FILE, join(REFS_HEADS_DIR, currentBranch.getName()).toString());
     stagingArea.persist();
   }
@@ -241,9 +238,9 @@ public class Repository {
     Set<String> committedFile = Head.getHEADCommit().getAllFiles();
 
     return plainFilenamesIn(CWD).stream()
-      .filter(fileName ->
-        !stagingArea.StageForAdditionContains(fileName) && !committedFile.contains(fileName)
-          || stagingArea.StageForRemovalContains(fileName))
+      .filter(fileName -> !stagingArea.StageForAdditionContains(fileName)
+        && !committedFile.contains(fileName)
+        || stagingArea.StageForRemovalContains(fileName))
       .collect(Collectors.toSet());
   }
 
@@ -269,8 +266,7 @@ public class Repository {
 
   public void checkoutFileFromCommit(String commitHash, String fileName) {
     if (!ObjectsHelper.objectExists(commitHash)) {
-      messageAndExit("No commit" +
-        " with that id exists.");
+      messageAndExit("No commit with that id exists.");
     } else {
       Commit commit = ObjectsHelper.getCommit(commitHash);
 
@@ -289,7 +285,7 @@ public class Repository {
   }
 
   public void checkoutBranch(String branchName) {
-    if (!Branch.branchExists(branchName)) {
+    if (!branchExists(branchName)) {
       messageAndExit("No such branch exists.");
     } else if (branchName.equals(currentBranch.getName())) {
       messageAndExit("No need to checkout the current branch.");
@@ -329,7 +325,7 @@ public class Repository {
   }
 
   public void rmBranch(String branchName) {
-    if (!Branch.branchExists(branchName)) {
+    if (!branchExists(branchName)) {
       messageAndExit("A branch with that name does not exist.");
     } else if (branchName.equals(currentBranch.getName())) {
       messageAndExit("Cannot remove the current branch.");
@@ -384,7 +380,7 @@ public class Repository {
   }
 
   public void merge(String givenBranchName) {
-    if (!Branch.branchExists(givenBranchName)) {
+    if (!branchExists(givenBranchName)) {
       messageAndExit("A branch with that name does not exist.");
     } else if (givenBranchName.equals(currentBranch.getName())) {
       messageAndExit("Cannot merge a branch with itself.");
@@ -395,7 +391,6 @@ public class Repository {
 
       Commit givenBranchTipCommit = ObjectsHelper.getBranchTipCommit(givenBranchName);
       Commit currentBranchTipCommit = ObjectsHelper.getCommit(currentBranch.getTipHash());
-
       Commit lastCommonAncestor = findLastCommonAncestor(currentBranchTipCommit, givenBranchTipCommit);
 
       if (lastCommonAncestor.equals(givenBranchTipCommit)) {
@@ -411,10 +406,8 @@ public class Repository {
   private Commit findLastCommonAncestor(Commit commit1, Commit commit2) {
     Set<Commit> commit1Ancestors = Stream.iterate(commit1, Objects::nonNull, Commit::getParentCommit)
       .collect(Collectors.toSet());
-
     Set<Commit> commit2Ancestors = Stream.iterate(commit2, Objects::nonNull, Commit::getParentCommit)
       .collect(Collectors.toSet());
-
     commit1Ancestors.retainAll(commit2Ancestors);
 
     return commit1Ancestors.stream().max(Comparator.comparing(Commit::getTimeStamp)).orElse(null);
@@ -422,10 +415,9 @@ public class Repository {
 
 
   public void branch(String branchName) throws IOException {
-    if (Branch.branchExists(branchName)) {
+    if (branchExists(branchName)) {
       messageAndExit("A branch with that name already exists.");
     } else {
-
       join(REFS_HEADS_DIR, branchName).createNewFile();
 
       Branch branch = new Branch(branchName);

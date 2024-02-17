@@ -40,9 +40,4 @@ public class Branch {
   public void persist() {
     Utils.writeContents(Utils.join(REFS_HEADS_DIR, name), tipHash);
   }
-
-  public static boolean branchExists(String branchName) {
-    return Utils.join(REFS_HEADS_DIR, branchName).exists();
-  }
-
 }

@@ -6,8 +6,7 @@ import java.util.HashSet;
 
 import static gitlet.utils.Constants.OBJECTS_DIR;
 import static gitlet.utils.Constants.STAGING_INDEX;
-import static gitlet.utils.Utils.join;
-import static gitlet.utils.Utils.writeObject;
+import static gitlet.utils.Utils.*;
 
 /**
  * @className: StagingArea
@@ -26,6 +25,10 @@ public class StagingArea implements Serializable {
   public StagingArea() {
     this.stagedBlobs = new HashMap<>();
     this.removedBlobs = new HashSet<>();
+  }
+
+  public static StagingArea load() {
+    return readObject(STAGING_INDEX, StagingArea.class);
   }
 
   /**

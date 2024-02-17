@@ -36,7 +36,7 @@ public class StagingArea implements Serializable {
    * @param fileName
    * @param blobHash
    */
-  public void stageForAddOrOverwrite(String fileName, String blobHash) {
+  public void stage(String fileName, String blobHash) {
     if (contains(fileName)) {
       clearStagedBlob(fileName);
     }
@@ -56,8 +56,12 @@ public class StagingArea implements Serializable {
     return stagedBlobs.containsKey(fileName) || removedBlobs.contains(fileName);
   }
 
-  public boolean containsStageFroAddition(String fileName) {
+  public boolean StageForAdditionContains(String fileName) {
     return stagedBlobs.containsKey(fileName);
+  }
+
+  public boolean StageForRemovalContains(String fileName) {
+    return removedBlobs.contains(fileName);
   }
 
   public void clearStagedBlob(String fileName) {
@@ -65,7 +69,7 @@ public class StagingArea implements Serializable {
     stagedBlobs.remove(fileName);
   }
 
-  public void clearAllStagedBlob() {
+  public void clearAllStagedBlobs() {
     for (String fileName : stagedBlobs.keySet()) {
       Utils.restrictedDelete(stagedBlobs.get(fileName));
     }

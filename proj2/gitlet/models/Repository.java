@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static gitlet.utils.Constants.*;
 import static gitlet.utils.Utils.*;
@@ -43,6 +44,11 @@ public class Repository {
     }
   }
 
+  private static String getCurrentBranchName() {
+    String path = Head.getHEADCommitPath();
+    return new File(path).getName();
+  }
+
   private String readFileFromRepositoryAsString(String fileName) {
     return readContentsAsString(join(CWD, fileName));
   }
@@ -67,12 +73,9 @@ public class Repository {
 
     makeDirectory();
     createBranchMaster();
-    persistHEAD();
-    stagingArea.persist();
-  }
 
-  private void persistHEAD() {
     writeContents(HEAD_FILE, join(REFS_HEADS_DIR, currentBranch.getName()).toString());
+    stagingArea.persist();
   }
 
   private void makeDirectory() throws IOException {
@@ -118,7 +121,7 @@ public class Repository {
       Blob blob = new Blob(fileName, readFileFromRepositoryAsString(fileName));
       blob.persist();
       // Staging an already-staged file overwrites the previous entry in the staging area with the new contents.
-      stagingArea.stageForAddOrOverwrite(blob.getFileName(), blob.sha1Hash());
+      stagingArea.stage(blob.getFileName(), blob.sha1Hash());
     }
 
     stagingArea.persist();
@@ -181,17 +184,7 @@ public class Repository {
   }
 
   public void log() {
-    Commit commit = Head.getHEADCommit();
-
-    while (true) {
-      logCommit(commit);
-
-      if (commit.isInitialCommit()) {
-        break;
-      } else {
-        commit = commit.getParentCommit();
-      }
-    }
+    Stream.iterate(Head.getHEADCommit(), Objects::nonNull, Commit::getParentCommit).forEach(this::logCommit);
   }
 
   public void status() {
@@ -253,17 +246,13 @@ public class Repository {
    * - nor tracked by the head commit.
    */
   private Set<String> getUntrackedFiles() {
-    Set<String> stagedForRemovalFiles = stagingArea.getRemovedBlobs();
-    List<String> workingDirectoryFiles = plainFilenamesIn(CWD);
-
     Set<String> committedFile = Head.getHEADCommit().getFileNameToBlobHash().keySet();
-    Set<String> collect1 = workingDirectoryFiles.stream()
-      .filter(fileName -> !stagingArea.containsStageFroAddition(fileName) && !committedFile.contains(fileName))
-      .collect(Collectors.toSet());
-    Set<String> collect2 = workingDirectoryFiles.stream().filter(stagedForRemovalFiles::contains).collect(Collectors.toSet());
-    collect1.addAll(collect2);
 
-    return collect1;
+    return plainFilenamesIn(CWD).stream()
+      .filter(fileName ->
+        !stagingArea.StageForAdditionContains(fileName) && !committedFile.contains(fileName)
+        || stagingArea.StageForRemovalContains(fileName))
+      .collect(Collectors.toSet());
   }
 
   /**
@@ -328,7 +317,7 @@ public class Repository {
 
       Head.update(newBranchTipCommit, branchName);
 
-      stagingArea.clearAllStagedBlob();
+      stagingArea.clearAllStagedBlobs();
       stagingArea.removeAllMapping();
 
       // overwrite the files in the working directory with the version in the newBranchTipCommit
@@ -338,19 +327,14 @@ public class Repository {
       });
 
       currentBranch = getCurrentBranch();
-      persistHEAD();
+      Head.persist();
       stagingArea.persist();
     }
   }
 
-
   private Branch getCurrentBranch() {
     String currentBranchTipCommitHash = readContentsAsString(new File(Head.getHEADCommitPath()));
-
-    String[] splitPath = Head.getHEADCommitPath().split(System.getProperty("file.separator"));
-    String currentBranchName = splitPath[splitPath.length - 1];
-
-    return new Branch(currentBranchName, currentBranchTipCommitHash);
+    return new Branch(getCurrentBranchName(), currentBranchTipCommitHash);
   }
 
   public void rmBranch(String branchName) {
@@ -367,10 +351,8 @@ public class Repository {
   // TODO Consider applying Decision tree pruning
   //In my implementation, the commit log will be sorted in descending order of the commit time stamp.
   public void globalLog() {
-    Set<Commit> allCommit = getAllCommits();
-
-    allCommit.stream()
-      .sorted((c1, c2) -> c2.getTimeStamp().compareTo(c1.getTimeStamp()))
+    getAllCommits().stream()
+      .sorted(Comparator.comparing(Commit::getTimeStamp).reversed())
       .forEach(this::logCommit);
   }
 
@@ -389,40 +371,25 @@ public class Repository {
   }
 
   public void find(String commitMessage) {
-    Set<Commit> allCommit = getAllCommits();
-
-    if (allCommit.stream().noneMatch(commit -> commit.getMessage().equals(commitMessage))) {
-      messageAndExit("Found no commit with that message.");
-    }
-
-    allCommit.stream()
+    Set<Commit> collect = getAllCommits().stream()
       .filter(commit -> commit.getMessage().equals(commitMessage))
-      .sorted((c1, c2) -> c2.getTimeStamp().compareTo(c1.getTimeStamp()))
-      .forEach(commit -> System.out.println(commit.sha1Hash()));
+      .collect(Collectors.toSet());
+
+    if (collect.isEmpty()) {
+      messageAndExit("Found no commit with that message.");
+    } else {
+      collect.stream()
+        .sorted(Comparator.comparing(Commit::getTimeStamp).reversed())
+        .forEach(commit -> System.out.println(commit.sha1Hash()));
+    }
   }
 
   private Set<Commit> getAllCommits() {
-    Set<Commit> allTipCommits = plainFilenamesIn(REFS_HEADS_DIR)
+    return plainFilenamesIn(REFS_HEADS_DIR)
       .stream()
-      .map(branchName ->
-        ObjectsHelper.getCommit(readContentsAsString(join(REFS_HEADS_DIR, branchName))))
+      .map(branchName -> ObjectsHelper.getCommit(readContentsAsString(join(REFS_HEADS_DIR, branchName))))
+      .flatMap(tipCommit -> Stream.iterate(tipCommit, Objects::nonNull, Commit::getParentCommit))
       .collect(Collectors.toSet());
-
-    Set<Commit> allCommit = new HashSet<>();
-
-    for (Commit tipCommit : allTipCommits) {
-      while (true) {
-
-        allCommit.add(tipCommit);
-
-        if (tipCommit.isInitialCommit()) {
-          break;
-        } else {
-          tipCommit = tipCommit.getParentCommit();
-        }
-      }
-    }
-    return allCommit;
   }
 
   public void merge(String givenBranchName) {
@@ -451,26 +418,11 @@ public class Repository {
   }
 
   private Commit findLastCommonAncestor(Commit commit1, Commit commit2) {
-    Set<Commit> commit1Ancestors = new HashSet<>();
-    Set<Commit> commit2Ancestors = new HashSet<>();
+    Set<Commit> commit1Ancestors = Stream.iterate(commit1, Objects::nonNull, Commit::getParentCommit)
+      .collect(Collectors.toSet());
 
-    while (true) {
-      if (commit1.isInitialCommit()) {
-        commit1Ancestors.add(commit1);
-        break;
-      }
-      commit1Ancestors.add(commit1);
-      commit1 = commit1.getParentCommit();
-    }
-
-    while (true) {
-      if (commit2.isInitialCommit()) {
-        commit2Ancestors.add(commit2);
-        break;
-      }
-      commit2Ancestors.add(commit2);
-      commit2 = commit2.getParentCommit();
-    }
+    Set<Commit> commit2Ancestors = Stream.iterate(commit2, Objects::nonNull, Commit::getParentCommit)
+      .collect(Collectors.toSet());
 
     commit1Ancestors.retainAll(commit2Ancestors);
 
@@ -489,5 +441,11 @@ public class Repository {
       branch.setTipCommit(Head.getHEADCommit());
       branch.persist();
     }
+  }
+
+  public void persist() {
+    stagingArea.persist();
+    currentBranch.persist();
+    Head.persist();
   }
 }

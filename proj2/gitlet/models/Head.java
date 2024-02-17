@@ -13,6 +13,8 @@ import gitlet.utils.Utils;
 import java.io.File;
 
 import static gitlet.utils.Constants.*;
+import static gitlet.utils.Utils.join;
+import static gitlet.utils.Utils.writeContents;
 
 /**
  * singleton HEAD
@@ -49,8 +51,8 @@ public class Head {
     return HEADCommitPath;
   }
 
-  public static void persist() {
-    Utils.writeContents(HEAD_FILE, HEADCommitPath);
+  public static void persist(){
+    String branchName = new File(HEADCommitPath).getName();
+    writeContents(HEAD_FILE, join(REFS_HEADS_DIR, branchName).toString());
   }
-
 }

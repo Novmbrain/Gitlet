@@ -43,7 +43,7 @@ b.txt
 
 <<<
 
-> commit -m "add a.txt and b.txt"
+> commit "add a.txt and b.txt"
 <<<
 
 > rm a.txt

@@ -5,7 +5,7 @@
 > add wug.txt
 <<<
 
-> commit -m "first commit"
+> commit "first commit"
 <<<
 
 > checkout -- notwug.txt

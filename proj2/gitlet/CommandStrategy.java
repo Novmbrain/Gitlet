@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
+import static gitlet.utils.Utils.messageAndExit;
+
 /**
  * @className: Command
  * @description: TODO
@@ -31,31 +33,44 @@ public class CommandStrategy {
     COMMAND_STRATEGIES.put("merge", this::merge);
   }
 
-  private void merge(String[] strings, Repository repository) {
-    String branchName = strings[1];
+  private void merge(String[] args, Repository repository) {
+    checkOperandLength(args, 2);
+    
+    String branchName = args[1];
     repository.merge(branchName);
   }
 
   private void rmBranch(String[] args, Repository repository) {
+    checkOperandLength(args, 2);
+    
     String branchName = args[1];
     repository.rmBranch(branchName);
   }
 
+
   private void reset(String[] args, Repository repository) {
+    checkOperandLength(args, 2);
+
     String commitHash = args[1];
     repository.reset(commitHash);
   }
 
   private void find(String[] args, Repository repository) {
+    checkOperandLength(args, 2);
+
     String commitMessage = args[1];
     repository.find(commitMessage);
   }
 
   private void globalLog(String[] args, Repository repository) {
+    checkOperandLength(args, 1);
+
     repository.globalLog();
   }
 
   private void init(String[] args, Repository repository) {
+    checkOperandLength(args, 1);
+
     try {
       repository.init();
     } catch (IOException e) {
@@ -64,29 +79,41 @@ public class CommandStrategy {
   }
 
   private void add(String[] args, Repository repository) {
+    checkOperandLength(args, 2);
+
     String fileName = args[1];
     repository.add(fileName);
   }
 
   private void commit(String[] args, Repository repository) {
+    checkOperandLength(args, 2);
+
     String commitMessage = args[1];
     repository.commit(commitMessage);
   }
 
   private void log(String[] args, Repository repository) {
+    checkOperandLength(args, 1);
     repository.log();
   }
 
   private void status(String[] args, Repository repository) {
+    checkOperandLength(args, 1);
     repository.status();
   }
 
   private void remove(String[] args, Repository repository) {
+    checkOperandLength(args, 2);
+
     String fileName = args[1];
     repository.rm(fileName);
   }
 
   private void checkout(String[] args, Repository repository) {
+    if (args.length < 2 || args.length > 4) {
+      messageAndExit("Incorrect operands.");
+    }
+
     int length = args.length;
     if (length == 3) {
       String fileName = args[2];
@@ -102,6 +129,8 @@ public class CommandStrategy {
   }
 
   private void branch(String[] args, Repository repository) {
+    checkOperandLength(args, 2);
+
     String branchName = args[1];
     try {
       repository.branch(branchName);
@@ -112,5 +141,13 @@ public class CommandStrategy {
 
   public void execute(String commandType, String[] args, Repository repository) {
     COMMAND_STRATEGIES.get(commandType).accept(args, repository);
+  }
+
+  private void checkOperandLength(String[] args, int length) {
+
+    if (args.length != length) {
+      messageAndExit("Incorrect operands.");
+
+    }
   }
 }

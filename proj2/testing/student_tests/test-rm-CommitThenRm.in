@@ -21,7 +21,7 @@ wug.txt
 
 <<<
 
-> commit -m "added wug.txt"
+> commit "added wug.txt"
 <<<
 
 + wug.txt notwug.txt

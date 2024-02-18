@@ -31,7 +31,7 @@
 <<<
 
 + a.txt b.txt
-> add a.txt b.txt
+> add a.txt
 <<<
 
 > commit "Add modify a.txt"

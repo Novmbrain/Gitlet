@@ -1,0 +1,53 @@
+I definitions.inc
+
+> init
+<<<
+
++ a.txt a.txt
+> add a.txt
+<<<
+
+> commit "add a.txt"
+<<<
+
++ b.txt b.txt
+> add b.txt
+<<<
+
+> commit "add b.txt"
+<<<
+
++ c.txt c.txt
+> add c.txt
+<<<
+
+> commit "add c.txt"
+<<<
+
+> log
+===
+${COMMIT_HEAD}
+add c.txt
+
+===
+${COMMIT_HEAD}
+add b.txt
+
+===
+${COMMIT_HEAD}
+add a.txt
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+# UID of version "add a.txt"
+D UID3 "${3}"
+
+> reset "${UID3}"
+<<<
+
+* b.txt
+* c.txt
+E a.txt

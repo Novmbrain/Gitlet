@@ -14,7 +14,9 @@ public class Handler5 implements IHandler{
   public boolean handle(String fileName, Commit headCommit, Commit givenCommit, Commit splitPointCommit, Repository repository) {
     boolean handled = false;
 
-    if (headCommit.containsFile(fileName) && !givenCommit.containsFile(fileName) && !splitPointCommit.containsFile(fileName)) {
+    if (headCommit.containsFile(fileName)
+      && !givenCommit.containsFile(fileName)
+      && !splitPointCommit.containsFile(fileName)) {
       // Do nothing
       handled = true;
     }

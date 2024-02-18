@@ -107,7 +107,7 @@ public class Repository {
     // if the file is identical to the version in the current commit, do not stage it to be added
     // -- case 1: the file is not in the staging area -> do nothing
     // -- case 2: the file is in the staging area -> remove it from the staging area
-    if (Head.getHEADCommit().isFileHashMatching(fileName)) {
+    if (Head.getHEADCommit().isFileIdentical(fileName)) {
       if (stagingArea.contains(fileName)) {
         stagingArea.clearStagedBlob(fileName);
       }

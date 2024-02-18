@@ -1,7 +1,11 @@
 package gitlet.handllers;
 
+import gitlet.models.Blob;
 import gitlet.models.Commit;
 import gitlet.models.Repository;
+import gitlet.utils.Utils;
+
+import static gitlet.utils.Constants.CWD;
 
 /**
  * @className: Handler7
@@ -17,24 +21,29 @@ public class Handler7 implements IHandler{
     boolean handled = false;
 
     if (headCommit.containsFile(fileName)
-      && givenCommit.containsFile(fileName)
-      && splitPointCommit.containsFile(fileName)) {
+      && givenCommit.containsFile(fileName)) {
 
-      String splitFileHash = splitPointCommit.getBlob(fileName).getFileHash();
+      Blob blob = splitPointCommit.getBlob(fileName);
+      String splitFileHash = blob == null ? "" : blob.getFileHash();
 
-      if (headCommit.isFileHashMatching(fileName, givenCommit.getBlob(fileName).getFileHash())) {
+      if (headCommit.isFileIdentical(fileName, givenCommit.getBlob(fileName).getFileHash())) {
         // Do nothing
         handled = true;
-      } else if (!headCommit.isFileHashMatching(fileName, splitFileHash) && !givenCommit.isFileHashMatching(fileName, splitFileHash)) {
+      } else if (!headCommit.isFileIdentical(fileName, splitFileHash) && !givenCommit.isFileIdentical(fileName, splitFileHash)) {
         // conflict handling
-
+        handleConflict(fileName, headCommit, givenCommit, repository);
         handled = true;
       }
     }
     return handled;
   }
 
-  private void handleConflict(String fileName, Commit headCommit, Commit givenCommit, Commit splitPointCommit, Repository repository) {
+  private void handleConflict(String fileName, Commit headCommit, Commit givenCommit, Repository repository) {
+    String headFileContent = headCommit.getBlob(fileName).getContent();
+    String givenFileContent = givenCommit.getBlob(fileName).getContent();
 
+    String conflictContent = "<<<<<<< HEAD\n" + headFileContent + "\n" + "=======\n" + givenFileContent + "\n" + ">>>>>>>";
+    Utils.writeContents(Utils.join(CWD, fileName), conflictContent);
+    repository.add(fileName);
   }
 }

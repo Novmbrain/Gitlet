@@ -20,7 +20,7 @@ public class Handler2 implements IHandler {
 
       String splitFileHash = splitPointCommit.getBlob(fileName).getFileHash();
 
-      if (!headCommit.isFileHashMatching(fileName, splitFileHash) && givenCommit.isFileHashMatching(fileName, splitFileHash)) {
+      if (!headCommit.isFileIdentical(fileName, splitFileHash) && givenCommit.isFileIdentical(fileName, splitFileHash)) {
         // Do nothing
         handled = true;
       }

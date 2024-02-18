@@ -14,9 +14,11 @@ public class Handler4 implements IHandler{
   public boolean handle(String fileName, Commit headCommit, Commit givenCommit, Commit splitPointCommit, Repository repository) {
     boolean handled = false;
 
-    if (!headCommit.containsFile(fileName) && givenCommit.containsFile(fileName) && splitPointCommit.containsFile(fileName)) {
+    if (!headCommit.containsFile(fileName)
+      && givenCommit.containsFile(fileName)
+      && splitPointCommit.containsFile(fileName)) {
       String splitFileHash = splitPointCommit.getBlob(fileName).getFileHash();
-      if (givenCommit.isFileHashMatching(fileName, splitFileHash)) {
+      if (givenCommit.isFileIdentical(fileName, splitFileHash)) {
         // Do nothing
         handled = true;
       }

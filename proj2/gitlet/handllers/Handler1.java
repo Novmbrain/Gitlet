@@ -20,8 +20,8 @@ public class Handler1 implements IHandler {
 
       String splitFileHash = splitPointCommit.getBlob(fileName).getFileHash();
 
-      if (headCommit.isFileHashMatching(fileName, splitFileHash)
-        && !givenCommit.isFileHashMatching(fileName, splitFileHash)) {
+      if (headCommit.isFileIdentical(fileName, splitFileHash)
+        && !givenCommit.isFileIdentical(fileName, splitFileHash)) {
         // 1. take the version of other branch
         repository.checkoutFileFromCommit(givenCommit.sha1Hash(), fileName);
         // 2. add the file to the staging area

@@ -14,7 +14,9 @@ public class Handler6 implements IHandler{
   public boolean handle(String fileName, Commit headCommit, Commit givenCommit, Commit splitPointCommit, Repository repository) {
     boolean handled = false;
 
-    if (!headCommit.containsFile(fileName) && givenCommit.containsFile(fileName) && !splitPointCommit.containsFile(fileName)) {
+    if (!headCommit.containsFile(fileName)
+      && givenCommit.containsFile(fileName)
+      && !splitPointCommit.containsFile(fileName)) {
       // 1. take the version of other branch
       repository.checkoutFileFromCommit(givenCommit.sha1Hash(), fileName);
       // 2. add the file to the staging area

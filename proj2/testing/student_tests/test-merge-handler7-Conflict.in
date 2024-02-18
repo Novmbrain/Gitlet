@@ -1,0 +1,30 @@
+> init
+<<<
+
+> branch given
+<<<
+
++ a.txt a.txt
+> add a.txt
+<<<
+
+> commit "add a.txt"
+<<<
+
+> checkout given
+<<<
+
++ a.txt b.txt
+> add a.txt
+<<<
+
+> commit "add a.txt with content b.txt"
+<<<
+
+> checkout master
+<<<
+
+> merge given
+<<<
+
+= a.txt a_b_conflict.txt

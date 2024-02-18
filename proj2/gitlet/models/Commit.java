@@ -28,7 +28,13 @@ public class Commit extends GitletObject {
   /**
    * * The parent commit of a commit object
    */
-  private String parentHash = "";
+  private String firstParentHash = "";
+
+  public String getFirstParentHash() {
+    return firstParentHash;
+  }
+
+  private String secondParentHash = "";
 
   public Commit(String message, Date timeStamp) {
     this.message = message;
@@ -57,13 +63,17 @@ public class Commit extends GitletObject {
   public Commit buildNext(String message) {
     Commit commit = new Commit(message, new Date());
     commit.fileNameToBlobHash = fileNameToBlobHash;
-    commit.parentHash = this.sha1Hash();
+    commit.firstParentHash = this.sha1Hash();
     return commit;
+  }
+
+  public void setSecondParentHash(String secondParentHash) {
+    this.secondParentHash = secondParentHash;
   }
 
   @Override
   public String sha1Hash() {
-    return Utils.sha1(message, timeStamp.toString(), Utils.serialize(fileNameToBlobHash), parentHash);
+    return Utils.sha1(message, timeStamp.toString(), Utils.serialize(fileNameToBlobHash), firstParentHash);
   }
 
   public void persist() {
@@ -82,16 +92,12 @@ public class Commit extends GitletObject {
     stagingArea.getRemovedBlobs().forEach(fileNameToBlobHash::remove);
   }
 
-  public Commit getParentCommit() {
-    if (parentHash.isEmpty()) {
+  public Commit getFirstParentCommit() {
+    if (firstParentHash.isEmpty()) {
       return null;
     } else {
-      return ObjectsHelper.getCommit(parentHash);
+      return ObjectsHelper.getCommit(firstParentHash);
     }
-  }
-
-  public boolean isInitialCommit() {
-    return parentHash.isEmpty();
   }
 
   public boolean containsFile(String fileName) {
@@ -129,16 +135,23 @@ public class Commit extends GitletObject {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     Commit commit = (Commit) o;
-    return Objects.equals(message, commit.message) && Objects.equals(timeStamp, commit.timeStamp) && Objects.equals(fileNameToBlobHash, commit.fileNameToBlobHash) && Objects.equals(parentHash, commit.parentHash);
+    return Objects.equals(message, commit.message) && Objects.equals(timeStamp, commit.timeStamp) && Objects.equals(fileNameToBlobHash, commit.fileNameToBlobHash) && Objects.equals(firstParentHash, commit.firstParentHash);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(message, timeStamp, fileNameToBlobHash, parentHash);
+    return Objects.hash(message, timeStamp, fileNameToBlobHash, firstParentHash);
   }
 
   public Set<String> getAllFiles() {
     return this.fileNameToBlobHash.keySet();
   }
 
+  public boolean isMergeCommit() {
+    return !secondParentHash.isEmpty();
+  }
+
+  public String getSecodnParentHash() {
+    return secondParentHash;
+  }
 }

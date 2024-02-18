@@ -30,11 +30,10 @@
 > checkout master
 <<<
 
-+ a.txt b.txt
-> add a.txt b.txt
+> rm a.txt
 <<<
 
-> commit "Add modify a.txt"
+> commit "Remove a.txt"
 <<<
 
 > merge given-branch
@@ -55,4 +54,4 @@
 
 #<<<
 
-= a.txt b.txt
+* a.txt

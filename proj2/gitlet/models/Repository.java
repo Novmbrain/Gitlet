@@ -154,31 +154,40 @@ public class Repository {
     // Write back to the disk any new objects created and any modified read from the disk
   }
 
-  public void commit(String message) {
+  private void commitCheck(String message) {
     if (stagingArea.isEmpty()) {
       messageAndExit("No changes added to the commit.");
     } else if (message.isEmpty()) {
       messageAndExit("Please enter a commit message.");
-    } else {
-      // Create a new commit object by cloning the head commit. As gitlet don't support detached head mode
-      // So, the HEAD also points to the tip commit of current branch.
-      Commit newCommit = Head.getHEADCommit().buildNext(message);
-
-      newCommit.updateIndex(stagingArea);
-      newCommit.persist();
-
-      stagingArea.removeAllMapping();
-      currentBranch.setTipCommit(newCommit);
-
-      // Write back to the disk any new objects created and any modified read from the disk
-      // TODO: considering extracting this part as method of repository call persistRepository*()
-      stagingArea.persist();
-      currentBranch.persist();
     }
   }
 
+  public void commit(String message) {
+    commitCheck(message);
+    doCommit(message);
+  }
+
+  private Commit doCommit(String message) {
+    // Create a new commit object by cloning the head commit. As gitlet don't support detached head mode
+    // So, the HEAD also points to the tip commit of current branch.
+    Commit newCommit = Head.getHEADCommit().buildNext(message);
+
+    newCommit.updateIndex(stagingArea);
+    newCommit.persist();
+
+    stagingArea.removeAllMapping();
+    currentBranch.setTipCommit(newCommit);
+
+    // Write back to the disk any new objects created and any modified read from the disk
+    // TODO: considering extracting this part as method of repository call persistRepository*()
+    stagingArea.persist();
+    currentBranch.persist();
+    return newCommit;
+  }
+
+
   public void log() {
-    Stream.iterate(Head.getHEADCommit(), Objects::nonNull, Commit::getParentCommit).forEach(this::logCommit);
+    Stream.iterate(Head.getHEADCommit(), Objects::nonNull, Commit::getFirstParentCommit).forEach(this::logCommit);
   }
 
   public void status() {
@@ -355,11 +364,13 @@ public class Repository {
     Date date = commit.getTimeStamp();
     String formattedDate = String.format("Date: %ta %tb %td %tT %tY %tz", date, date, date, date, date, date);
 
-    output.append(
-      "===\n" +
-        "commit " + commit.sha1Hash() + "\n" +
-        formattedDate + "\n" +
-        commit.getMessage() + "\n");
+    output.append("===\n" + "commit " + commit.sha1Hash() + "\n");
+
+    if (commit.isMergeCommit()) {
+      output.append("Merge: " + commit.getFirstParentHash().substring(0, 7) + " " + commit.getSecodnParentHash().substring(0, 7) + "\n");
+    }
+
+    output.append(formattedDate + "\n" + commit.getMessage() + "\n");
 
     System.out.println(output);
   }
@@ -382,7 +393,7 @@ public class Repository {
     return plainFilenamesIn(REFS_HEADS_DIR)
       .stream()
       .map(branchName -> ObjectsHelper.getCommit(readContentsAsString(join(REFS_HEADS_DIR, branchName))))
-      .flatMap(tipCommit -> Stream.iterate(tipCommit, Objects::nonNull, Commit::getParentCommit))
+      .flatMap(tipCommit -> Stream.iterate(tipCommit, Objects::nonNull, Commit::getFirstParentCommit))
       .collect(Collectors.toSet());
   }
 
@@ -395,38 +406,42 @@ public class Repository {
       messageAndExit("You have uncommitted changes.");
     } else {
       // TODO: Consider to put the tip commit as a field of the Class Branch
-      Commit givenBranchTipCommit = ObjectsHelper.getBranchTipCommit(givenBranchName);
-      Commit currentBranchTipCommit = ObjectsHelper.getCommit(currentBranch.getTipHash());
-      Commit lastCommonAncestor = findLastCommonAncestor(currentBranchTipCommit, givenBranchTipCommit);
+      Commit given = ObjectsHelper.getBranchTipCommit(givenBranchName);
+      Commit current = ObjectsHelper.getCommit(currentBranch.getTipHash());
+      Commit lastCommonAncestor = findLastCommonAncestor(current, given);
 
-      if (lastCommonAncestor.equals(givenBranchTipCommit)) {
+      if (lastCommonAncestor.equals(given)) {
         messageAndExit("Given branch is an ancestor of the current branch.");
-      } else if (lastCommonAncestor.equals(currentBranchTipCommit)) {
+      } else if (lastCommonAncestor.equals(current)) {
         this.checkoutBranch(givenBranchName);
-        currentBranch.setTipCommit(givenBranchTipCommit);
-        Head.update(givenBranchTipCommit, currentBranch.getName());
+        currentBranch.setTipCommit(given);
+        Head.update(given, currentBranch.getName());
         messageAndExit("Current branch fast-forwarded.");
       }
 
-      Set<String> allMergedFiles = new HashSet<>(givenBranchTipCommit.getAllFiles());
-      allMergedFiles.addAll(currentBranchTipCommit.getAllFiles());
+      Set<String> allMergedFiles = new HashSet<>(given.getAllFiles());
+      allMergedFiles.addAll(current.getAllFiles());
 
       for (String fileName : allMergedFiles) {
         for (IHandler handler : getMergeHandlers()) {
-          boolean handled = handler.handle(fileName, currentBranchTipCommit, givenBranchTipCommit, lastCommonAncestor, this);
+          boolean handled = handler.handle(fileName, current, given, lastCommonAncestor, this);
           if (handled) {
             break;
           }
         }
       }
 
+      String message = "Merged " + givenBranchName + " into " + currentBranch.getName() + ".";
+      Commit mergeCommit = this.doCommit(message);
+      mergeCommit.setSecondParentHash(given.sha1Hash());
+      mergeCommit.persist();
     }
   }
 
   private Commit findLastCommonAncestor(Commit commit1, Commit commit2) {
-    Set<Commit> commit1Ancestors = Stream.iterate(commit1, Objects::nonNull, Commit::getParentCommit)
+    Set<Commit> commit1Ancestors = Stream.iterate(commit1, Objects::nonNull, Commit::getFirstParentCommit)
       .collect(Collectors.toSet());
-    Set<Commit> commit2Ancestors = Stream.iterate(commit2, Objects::nonNull, Commit::getParentCommit)
+    Set<Commit> commit2Ancestors = Stream.iterate(commit2, Objects::nonNull, Commit::getFirstParentCommit)
       .collect(Collectors.toSet());
     commit1Ancestors.retainAll(commit2Ancestors);
 
@@ -443,11 +458,5 @@ public class Repository {
       branch.setTipCommit(Head.getHEADCommit());
       branch.persist();
     }
-  }
-
-  public void persist() {
-    stagingArea.persist();
-    currentBranch.persist();
-    Head.persist();
   }
 }

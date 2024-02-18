@@ -30,11 +30,11 @@
 > checkout master
 <<<
 
-+ a.txt b.txt
-> add a.txt b.txt
++ c.txt c.txt
+> add c.txt
 <<<
 
-> commit "Add modify a.txt"
+> commit "Add c.txt"
 <<<
 
 > merge given-branch
@@ -54,5 +54,3 @@
 #=== Untracked Files ===
 
 #<<<
-
-= a.txt b.txt

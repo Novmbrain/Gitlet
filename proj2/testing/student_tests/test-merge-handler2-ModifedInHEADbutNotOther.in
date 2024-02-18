@@ -1,0 +1,56 @@
+> init
+<<<
+
++ a.txt a.txt
+> add a.txt
+<<<
+
+> commit "Add a.txt"
+<<<
+
+> branch given-branch
+<<<
+
+> checkout given-branch
+<<<
+
++ b.txt b.txt
+> add b.txt
+<<<
+
+> commit "Add b.txt"
+<<<
+
+> rm b.txt
+<<<
+
+> commit "Remove b.txt"
+<<<
+
+> checkout master
+<<<
+
++ a.txt b.txt
+> add a.txt b.txt
+<<<
+
+> commit "Add modify a.txt"
+<<<
+
+> merge given-branch
+<<<
+
+> status
+=== Branches ===
+*master
+given-branch
+
+=== Staged Files ===
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<

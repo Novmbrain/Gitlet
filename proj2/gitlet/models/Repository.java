@@ -1,5 +1,6 @@
 package gitlet.models;
 
+import gitlet.handllers.*;
 import gitlet.utils.ObjectsHelper;
 import gitlet.utils.Utils;
 
@@ -45,6 +46,10 @@ public class Repository {
 
   private static String getCurrentBranchName() {
     return new File(Head.getHEADCommitPath()).getName();
+  }
+
+  private static List<IHandler> getMergeHandlers() {
+    return List.of(new Handler1(), new Handler2(), new Handler3(), new Handler4(), new Handler5(), new Handler6(), new Handler7());
   }
 
   // TODO: add a strict mode to check if the current working directory is a gitlet repository
@@ -187,13 +192,17 @@ public class Repository {
     Set<String> stagedForRemovalFiles = stagingArea.getRemovedBlobs();
 
     output.append("=== Branches ===\n");
-    branches.forEach(branchName -> {
-      if (branchName.equals(currentBranch.getName())) {
-        output.append("*").append(branchName).append("\n");
-      } else {
-        output.append(branchName).append("\n");
-      }
-    });
+
+    branches.stream()
+      .filter(branchName -> branchName.equals(currentBranch.getName()))
+      .forEach(branchName -> output.append("*").append(branchName).append("\n"));
+
+    branches.stream()
+      .filter(branchName -> !branchName.equals(currentBranch.getName()))
+      .forEach(branchName -> output.append(branchName).append("\n"));
+
+    output.append("\n");
+
     output.append("\n");
 
     output.append("=== Staged Files ===\n");
@@ -333,7 +342,6 @@ public class Repository {
     }
   }
 
-
   // TODO Consider applying Decision tree pruning
   //In my implementation, the commit log will be sorted in descending order of the commit time stamp.
   public void globalLog() {
@@ -387,9 +395,6 @@ public class Repository {
       messageAndExit("You have uncommitted changes.");
     } else {
       // TODO: Consider to put the tip commit as a field of the Class Branch
-
-      Branch givenBranch = ObjectsHelper.getBranch(givenBranchName);
-
       Commit givenBranchTipCommit = ObjectsHelper.getBranchTipCommit(givenBranchName);
       Commit currentBranchTipCommit = ObjectsHelper.getCommit(currentBranch.getTipHash());
       Commit lastCommonAncestor = findLastCommonAncestor(currentBranchTipCommit, givenBranchTipCommit);
@@ -402,6 +407,19 @@ public class Repository {
         Head.update(givenBranchTipCommit, currentBranch.getName());
         messageAndExit("Current branch fast-forwarded.");
       }
+
+      Set<String> allMergedFiles = new HashSet<>(givenBranchTipCommit.getAllFiles());
+      allMergedFiles.addAll(currentBranchTipCommit.getAllFiles());
+
+      for (String fileName : allMergedFiles) {
+        for (IHandler handler : getMergeHandlers()) {
+          boolean handled = handler.handle(fileName, currentBranchTipCommit, givenBranchTipCommit, lastCommonAncestor, this);
+          if (handled) {
+            break;
+          }
+        }
+      }
+
     }
   }
 
@@ -414,7 +432,6 @@ public class Repository {
 
     return commit1Ancestors.stream().max(Comparator.comparing(Commit::getTimeStamp)).orElse(null);
   }
-
 
   public void branch(String branchName) throws IOException {
     if (branchExists(branchName)) {

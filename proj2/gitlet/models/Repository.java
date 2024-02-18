@@ -315,11 +315,7 @@ public class Repository {
       stagingArea.removeAllMapping();
 
       // overwrite the files in the working directory with the version in the newBranchTipCommit
-      newBranchTipCommit.getAllFiles().forEach(fileName -> {
-        Blob blob = newBranchTipCommit.getBlob(fileName);
-        writeContents(join(CWD, fileName), blob.getContent());
-      });
-
+      newBranchTipCommit.restoreCommit();
       Head.persist();
       stagingArea.persist();
     }
@@ -451,6 +447,32 @@ public class Repository {
       Branch branch = new Branch(branchName);
       branch.setTipCommit(Head.getHEADCommit());
       branch.persist();
+    }
+  }
+
+  public void reset(String commitHash) {
+    if (!ObjectsHelper.objectExists(commitHash)) {
+      messageAndExit("No commit with that id exists.");
+    } else {
+      Commit commit = ObjectsHelper.getCommit(commitHash);
+
+      commit.getAllFiles().stream()
+        .filter(getUntrackedFiles()::contains)
+        .findFirst()
+        .ifPresent(file -> messageAndExit("There is an untracked file in the way; delete it, or add and commit it first."));
+
+      Head.getHEADCommit().getAllFiles().forEach(fileName ->
+        Utils.restrictedDelete(join(CWD, fileName))
+      );
+
+      commit.restoreCommit();
+      Head.update(commit, currentBranch.getName());
+
+      stagingArea.clearAllStagedBlobs();
+      stagingArea.removeAllMapping();
+
+      stagingArea.persist();
+      Head.persist();
     }
   }
 }

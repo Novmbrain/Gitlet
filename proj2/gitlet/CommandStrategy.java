@@ -43,7 +43,7 @@ public class CommandStrategy {
 
   private void reset(String[] args, Repository repository) {
     String commitHash = args[1];
-    //repository.reset(commitHash);
+    repository.reset(commitHash);
   }
 
   private void find(String[] args, Repository repository) {

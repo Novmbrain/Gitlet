@@ -10,6 +10,8 @@ import java.util.Objects;
 import java.util.Set;
 
 import static gitlet.utils.Constants.CWD;
+import static gitlet.utils.Utils.join;
+import static gitlet.utils.Utils.writeContents;
 
 public class Commit extends GitletObject {
 
@@ -153,5 +155,12 @@ public class Commit extends GitletObject {
 
   public String getSecodnParentHash() {
     return secondParentHash;
+  }
+
+  public void restoreCommit() {
+    this.getAllFiles().forEach(fileName -> {
+      Blob blob = this.getBlob(fileName);
+      writeContents(join(CWD, fileName), blob.getContent());
+    });
   }
 }

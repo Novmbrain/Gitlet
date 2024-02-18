@@ -12,7 +12,7 @@ import static gitlet.utils.Constants.REFS_HEADS_DIR;
  **/
 public class Branch {
 
-  private String name;
+  private final String name;
 
   private String tipHash;
 

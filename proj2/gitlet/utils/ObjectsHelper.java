@@ -1,6 +1,7 @@
 package gitlet.utils;
 
 import gitlet.models.Blob;
+import gitlet.models.Branch;
 import gitlet.models.Commit;
 import gitlet.models.GitletObject;
 
@@ -75,5 +76,10 @@ public class ObjectsHelper {
 
   public static Commit getBranchTipCommit(String branchName) {
     return ObjectsHelper.getCommit(readContentsAsString(join(REFS_HEADS_DIR, branchName)));
+  }
+
+  public static Branch getBranch(String branchName) {
+    String tipCommitHash = readContentsAsString(join(REFS_HEADS_DIR, branchName));
+    return new Branch(branchName, tipCommitHash);
   }
 }

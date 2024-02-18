@@ -313,7 +313,6 @@ public class Repository {
         writeContents(join(CWD, fileName), blob.getContent());
       });
 
-      currentBranch = getCurrentBranch();
       Head.persist();
       stagingArea.persist();
     }
@@ -389,6 +388,8 @@ public class Repository {
     } else {
       // TODO: Consider to put the tip commit as a field of the Class Branch
 
+      Branch givenBranch = ObjectsHelper.getBranch(givenBranchName);
+
       Commit givenBranchTipCommit = ObjectsHelper.getBranchTipCommit(givenBranchName);
       Commit currentBranchTipCommit = ObjectsHelper.getCommit(currentBranch.getTipHash());
       Commit lastCommonAncestor = findLastCommonAncestor(currentBranchTipCommit, givenBranchTipCommit);
@@ -397,7 +398,8 @@ public class Repository {
         messageAndExit("Given branch is an ancestor of the current branch.");
       } else if (lastCommonAncestor.equals(currentBranchTipCommit)) {
         this.checkoutBranch(givenBranchName);
-        currentBranch = getCurrentBranch();
+        currentBranch.setTipCommit(givenBranchTipCommit);
+        Head.update(givenBranchTipCommit, currentBranch.getName());
         messageAndExit("Current branch fast-forwarded.");
       }
     }

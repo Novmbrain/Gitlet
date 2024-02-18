@@ -11,14 +11,13 @@ import gitlet.utils.Utils;
  * @date: 25/01/2024
  **/
 public class Blob extends GitletObject {
-  private String fileName;
-  private String fileHash;
-  private String content;
+  private final String fileName;
+  private final String fileHash;
+  private final String content;
 
   public Blob(String fileName, String content) {
     this.fileName = fileName;
     this.content = content;
-    // Two files that have different names but the same content will have different sha1 hash
     this.fileHash = Utils.sha1(fileName, content);
   }
 

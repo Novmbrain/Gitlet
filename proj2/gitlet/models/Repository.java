@@ -143,17 +143,6 @@ public class Repository {
     }
   }
 
-  public void commitForMerge(Commit currentBranchTip, Commit givenBranchTip) {
-    Commit newCommit = currentBranchTip.buildNext("Merged " + currentBranch.getName() + " with " + givenBranchTip.sha1Hash());
-    newCommit.updateIndex(stagingArea);
-    newCommit.persist();
-
-    stagingArea.removeAllMapping();
-    currentBranch.setTipCommit(newCommit);
-
-    // Write back to the disk any new objects created and any modified read from the disk
-  }
-
   private void commitCheck(String message) {
     if (stagingArea.isEmpty()) {
       messageAndExit("No changes added to the commit.");
@@ -410,6 +399,14 @@ public class Repository {
       Commit current = ObjectsHelper.getCommit(currentBranch.getTipHash());
       Commit lastCommonAncestor = findLastCommonAncestor(current, given);
 
+      Set<String> allMergedFiles = new HashSet<>(given.getAllFiles());
+      allMergedFiles.addAll(current.getAllFiles());
+
+      allMergedFiles.stream()
+        .filter(getUntrackedFiles()::contains)
+        .findFirst()
+        .ifPresent(file -> messageAndExit("There is an untracked file in the way; delete it, or add and commit it first."));
+
       if (lastCommonAncestor.equals(given)) {
         messageAndExit("Given branch is an ancestor of the current branch.");
       } else if (lastCommonAncestor.equals(current)) {
@@ -418,9 +415,6 @@ public class Repository {
         Head.update(given, currentBranch.getName());
         messageAndExit("Current branch fast-forwarded.");
       }
-
-      Set<String> allMergedFiles = new HashSet<>(given.getAllFiles());
-      allMergedFiles.addAll(current.getAllFiles());
 
       for (String fileName : allMergedFiles) {
         for (IHandler handler : getMergeHandlers()) {

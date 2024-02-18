@@ -1,0 +1,31 @@
+> init
+<<<
+
+> branch given
+<<<
+
++ a.txt a.txt
+> add a.txt
+<<<
+
+> commit "add a.txt"
+<<<
+
+> checkout given
+<<<
+
++ b.txt b.txt
+> add b.txt
+<<<
+
+> commit "add b.txt"
+<<<
+
+> checkout master
+<<<
+
++ b.txt b.txt
+
+> merge given
+There is an untracked file in the way; delete it, or add and commit it first.
+<<<

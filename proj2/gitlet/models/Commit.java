@@ -23,6 +23,7 @@ public class Commit extends GitletObject {
    * Time at which a commit is created. Assigned by the constructor
    */
   private final Date timeStamp;
+  public String sha1Hash = "";
   /**
    * A map that links file name to its blob
    */
@@ -31,17 +32,16 @@ public class Commit extends GitletObject {
    * * The parent commit of a commit object
    */
   private String firstParentHash = "";
-
-  public String getFirstParentHash() {
-    return firstParentHash;
-  }
-
   private String secondParentHash = "";
 
   public Commit(String message, Date timeStamp) {
     this.message = message;
     this.timeStamp = timeStamp;
     this.fileNameToBlobHash = new HashMap<>();
+  }
+
+  public String getFirstParentHash() {
+    return firstParentHash;
   }
 
   public String getMessage() {
@@ -65,21 +65,18 @@ public class Commit extends GitletObject {
   public Commit buildNext(String message) {
     Commit commit = new Commit(message, new Date());
     commit.fileNameToBlobHash = fileNameToBlobHash;
-    commit.firstParentHash = this.sha1Hash();
+    commit.firstParentHash = this.sha1Hash;
     return commit;
   }
 
-  public void setSecondParentHash(String secondParentHash) {
-    this.secondParentHash = secondParentHash;
-  }
-
   @Override
-  public String sha1Hash() {
+  protected String sha1Hash() {
     return Utils.sha1(message, timeStamp.toString(), Utils.serialize(fileNameToBlobHash), firstParentHash);
   }
 
   public void persist() {
-    ObjectsHelper.persistObject(this.sha1Hash(), this);
+    sha1Hash = this.sha1Hash();
+    ObjectsHelper.persistObject(sha1Hash, this);
   }
 
   public void updateIndex(StagingArea stagingArea) {
@@ -153,8 +150,12 @@ public class Commit extends GitletObject {
     return !secondParentHash.isEmpty();
   }
 
-  public String getSecodnParentHash() {
+  public String getSecondParentHash() {
     return secondParentHash;
+  }
+
+  public void setSecondParentHash(String secondParentHash) {
+    this.secondParentHash = secondParentHash;
   }
 
   public void restoreCommit() {

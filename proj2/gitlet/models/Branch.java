@@ -34,7 +34,7 @@ public class Branch {
   }
 
   public void setTipCommit(Commit commit) {
-    this.tipHash = commit.sha1Hash();
+    this.tipHash = commit.sha1Hash;
   }
 
   public void persist() {

@@ -349,10 +349,10 @@ public class Repository {
     Date date = commit.getTimeStamp();
     String formattedDate = String.format("Date: %ta %tb %td %tT %tY %tz", date, date, date, date, date, date);
 
-    output.append("===\n" + "commit " + commit.sha1Hash() + "\n");
+    output.append("===\n" + "commit " + commit.sha1Hash + "\n");
 
     if (commit.isMergeCommit()) {
-      output.append("Merge: " + commit.getFirstParentHash().substring(0, 7) + " " + commit.getSecodnParentHash().substring(0, 7) + "\n");
+      output.append("Merge: " + commit.getFirstParentHash().substring(0, 7) + " " + commit.getSecondParentHash().substring(0, 7) + "\n");
     }
 
     output.append(formattedDate + "\n" + commit.getMessage() + "\n");
@@ -370,7 +370,7 @@ public class Repository {
     } else {
       collect.stream()
         .sorted(Comparator.comparing(Commit::getTimeStamp).reversed())
-        .forEach(commit -> System.out.println(commit.sha1Hash()));
+        .forEach(commit -> System.out.println(commit.sha1Hash));
     }
   }
 
@@ -423,7 +423,7 @@ public class Repository {
 
       String message = "Merged " + givenBranchName + " into " + currentBranch.getName() + ".";
       Commit mergeCommit = this.doCommit(message);
-      mergeCommit.setSecondParentHash(given.sha1Hash());
+      mergeCommit.setSecondParentHash(given.sha1Hash);
       mergeCommit.persist();
     }
   }

@@ -18,7 +18,7 @@ public class Handler6 implements IHandler{
       && givenCommit.containsFile(fileName)
       && !splitPointCommit.containsFile(fileName)) {
       // 1. take the version of other branch
-      repository.checkoutFileFromCommit(givenCommit.sha1Hash(), fileName);
+      repository.checkoutFileFromCommit(givenCommit.sha1Hash, fileName);
       // 2. add the file to the staging area
       repository.add(fileName);
       handled = true;

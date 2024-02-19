@@ -17,6 +17,7 @@ import static gitlet.utils.Utils.messageAndExit;
  **/
 public class CommandStrategy {
   public static final Map<String, BiConsumer<String[], Repository>> COMMAND_STRATEGIES = new HashMap<>();
+
   CommandStrategy() {
     COMMAND_STRATEGIES.put("init", this::init);
     COMMAND_STRATEGIES.put("add", this::add);
@@ -35,18 +36,17 @@ public class CommandStrategy {
 
   private void merge(String[] args, Repository repository) {
     checkOperandLength(args, 2);
-    
+
     String branchName = args[1];
     repository.merge(branchName);
   }
 
   private void rmBranch(String[] args, Repository repository) {
     checkOperandLength(args, 2);
-    
+
     String branchName = args[1];
     repository.rmBranch(branchName);
   }
-
 
   private void reset(String[] args, Repository repository) {
     checkOperandLength(args, 2);
@@ -147,7 +147,6 @@ public class CommandStrategy {
 
     if (args.length != length) {
       messageAndExit("Incorrect operands.");
-
     }
   }
 }

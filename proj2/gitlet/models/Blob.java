@@ -34,7 +34,7 @@ public class Blob extends GitletObject {
   }
 
   @Override
-  public String sha1Hash() {
+  protected String sha1Hash() {
     return Utils.sha1(fileName, content, fileHash);
   }
 

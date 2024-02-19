@@ -7,27 +7,28 @@ import static gitlet.CommandStrategy.COMMAND_STRATEGIES;
 import static gitlet.utils.Utils.messageAndExit;
 
 /**
- * Driver class for Gitlet, a subset of the Git version-control system.
- * <p>
- * <p>
- * User will call gitlet multiple time
- *
- * @author TODO
+ * Main class for the Gitlet version control system.
+ * This class is responsible for handling the user's commands and executing them.
  */
 public class Main {
+  /**
+   * The repository where the Gitlet data is stored.
+   */
   private static final Repository repository = new Repository();
+
+  /**
+   * The strategy used to execute the user's commands.
+   */
   private static final CommandStrategy commandStrategy = new CommandStrategy();
 
   /**
-   * Usage: java gitlet.Main ARGS, where ARGS contains
-   * <COMMAND> <OPERAND1> <OPERAND2> ...
+   * The main method that is run when the program is started.
+   * It checks the user's command and executes it.
+   *
+   * @param args The arguments provided by the user. The first argument is the command to execute.
+   * @throws GitletException If there is an error executing the command.
    */
   public static void main(String[] args) throws GitletException {
-
-    /**
-     * TODO: Checking order matters
-     * If a user inputs a command with the wrong number or format of operands, print the message Incorrect operands. and exit.
-     */
     if (args.length == 0) {
       messageAndExit("Please enter a command.");
     }

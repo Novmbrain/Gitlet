@@ -167,8 +167,6 @@ public class Repository {
     stagingArea.removeAllMapping();
     currentBranch.setTipCommit(newCommit);
 
-    // Write back to the disk any new objects created and any modified read from the disk
-    // TODO: considering extracting this part as method of repository call persistRepository*()
     stagingArea.persist();
     currentBranch.persist();
     return newCommit;
@@ -298,9 +296,9 @@ public class Repository {
       messageAndExit("No need to checkout the current branch.");
     } else {
 
-      Commit newBranchTipCommit = ObjectsHelper.getBranchTipCommit(branchName);
+      Commit givenCommit = ObjectsHelper.getBranchTipCommit(branchName);
 
-      newBranchTipCommit.getAllFiles().stream()
+      givenCommit.getAllFiles().stream()
         .filter(getUntrackedFiles()::contains)
         .findFirst()
         .ifPresent(file -> messageAndExit("There is an untracked file in the way; delete it, or add and commit it first."));
@@ -309,13 +307,14 @@ public class Repository {
         Utils.restrictedDelete(join(CWD, fileName))
       );
 
-      Head.update(newBranchTipCommit, branchName);
+      Head.update(givenCommit, branchName);
 
       stagingArea.clearAllStagedBlobs();
       stagingArea.removeAllMapping();
 
       // overwrite the files in the working directory with the version in the newBranchTipCommit
-      newBranchTipCommit.restoreCommit();
+      givenCommit.restoreCommit();
+
       Head.persist();
       stagingArea.persist();
     }

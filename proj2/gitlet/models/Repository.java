@@ -52,6 +52,25 @@ public class Repository {
     return List.of(new MergeHandler1(), new MergeHandler2(), new MergeHandler3(), new MergeHandler4(), new MergeHandler5(), new MergeHandler6(), new MergeHandler7());
   }
 
+  /**
+   * Returns a list of the names of all plain files in the directory DIR, in
+   * lexicographic order as Java Strings.  Returns null if DIR does
+   * not denote a directory.
+   * <p>
+   * Untracked files are files in the working directory that are
+   * - neither staged for addition
+   * - nor tracked by the head commit.
+   */
+  private static Set<String> getUntrackedFiles() {
+    Set<String> committedFile = Head.getHEADCommit().getAllFiles();
+
+    return plainFilenamesIn(CWD).stream()
+      .filter(fileName -> !stagingArea.StageForAdditionContains(fileName)
+        && !committedFile.contains(fileName)
+        || stagingArea.StageForRemovalContains(fileName))
+      .collect(Collectors.toSet());
+  }
+
   // TODO: add a strict mode to check if the current working directory is a gitlet repository
   public boolean gitletExists() {
     return GITLET_DIR.exists();
@@ -172,81 +191,12 @@ public class Repository {
     return newCommit;
   }
 
-
   public void log() {
     Stream.iterate(Head.getHEADCommit(), Objects::nonNull, Commit::getFirstParentCommit).forEach(this::logCommit);
   }
 
   public void status() {
-    /**
-     * tracked files = check staging files + check committed files
-     */
-    StringBuilder output = new StringBuilder();
-
-    List<String> branches = plainFilenamesIn(REFS_HEADS_DIR);
-    Set<String> stagedForAdditionFiles = stagingArea.getStagedBlobs().keySet();
-    Set<String> stagedForRemovalFiles = stagingArea.getRemovedBlobs();
-
-    output.append("=== Branches ===\n");
-
-    branches.stream()
-      .filter(branchName -> branchName.equals(currentBranch.getName()))
-      .forEach(branchName -> output.append("*").append(branchName).append("\n"));
-
-    branches.stream()
-      .filter(branchName -> !branchName.equals(currentBranch.getName()))
-      .forEach(branchName -> output.append(branchName).append("\n"));
-
-    output.append("\n");
-
-    output.append("\n");
-
-    output.append("=== Staged Files ===\n");
-    stagedForAdditionFiles.forEach(blobName -> output.append(blobName).append("\n"));
-    output.append("\n");
-
-    output.append("=== Removed Files ===\n");
-    stagedForRemovalFiles.forEach(blobName -> output.append(blobName).append("\n"));
-    output.append("\n");
-
-    output.append("=== Modifications Not Staged For Commit ===\n");
-    output.append("\n");
-    // TODO:
-    // 1. Staged for addition, but with different contents than in the working directory;
-
-    // 2. Staged for addition, but deleted in the working directory;
-
-    // 3. Not staged for addition, but with different contents than in the working directory;
-
-    // 4. Tracked in the working directory, but not in the staging area;
-
-
-    output.append("=== Untracked Files ===\n");
-    // The final category (“Untracked Files”) is for files present in the working directory but neither staged for addition nor tracked.
-    // This includes files that have been staged for removal, but then re-created without Gitlet’s knowledge.
-    getUntrackedFiles().forEach(fileName -> output.append(fileName).append("\n"));
-    output.append("\n");
-
-    System.out.println(output);
-  }
-
-  /**
-   * Returns a list of the names of all plain files in the directory DIR, in
-   * lexicographic order as Java Strings.  Returns null if DIR does
-   * not denote a directory.
-   * <p>
-   * Untracked files are files in the working directory that are
-   * - neither staged for addition
-   * - nor tracked by the head commit.
-   */
-  private Set<String> getUntrackedFiles() {
-    Set<String> committedFile = Head.getHEADCommit().getAllFiles();
-
-    return plainFilenamesIn(CWD).stream()
-      .filter(fileName -> !stagingArea.StageForAdditionContains(fileName)
-        && !committedFile.contains(fileName)
-        || stagingArea.StageForRemovalContains(fileName))
-      .collect(Collectors.toSet());
+    StatusPrinter.status();
   }
 
   /**
@@ -472,6 +422,82 @@ public class Repository {
 
       stagingArea.persist();
       Head.persist();
+    }
+  }
+
+
+  private static class StatusPrinter {
+    public static void status() {
+      StringBuilder output = new StringBuilder();
+
+      output.append(generateBranchesSection());
+      output.append(generateStagedFilesSection());
+      output.append(generateRemovedFilesSection());
+      output.append(generateModificationsNotStagedSection());
+      output.append(generateUntrackedFilesSection());
+
+      System.out.println(output);
+    }
+
+    private static String generateBranchesSection() {
+      StringBuilder output = new StringBuilder();
+      List<String> branches = plainFilenamesIn(REFS_HEADS_DIR);
+
+      output.append("=== Branches ===\n");
+
+      branches.stream()
+        .filter(branchName -> branchName.equals(currentBranch.getName()))
+        .forEach(branchName -> output.append("*").append(branchName).append("\n"));
+
+      branches.stream()
+        .filter(branchName -> !branchName.equals(currentBranch.getName()))
+        .forEach(branchName -> output.append(branchName).append("\n"));
+
+      output.append("\n");
+
+      return output.toString();
+    }
+
+    private static String generateStagedFilesSection() {
+      StringBuilder output = new StringBuilder();
+      Set<String> stagedForAdditionFiles = stagingArea.getStagedBlobs().keySet();
+
+      output.append("=== Staged Files ===\n");
+      stagedForAdditionFiles.forEach(blobName -> output.append(blobName).append("\n"));
+      output.append("\n");
+
+      return output.toString();
+    }
+
+    private static String generateRemovedFilesSection() {
+      StringBuilder output = new StringBuilder();
+      Set<String> stagedForRemovalFiles = stagingArea.getRemovedBlobs();
+
+      output.append("=== Removed Files ===\n");
+      stagedForRemovalFiles.forEach(blobName -> output.append(blobName).append("\n"));
+      output.append("\n");
+
+      return output.toString();
+    }
+
+    private static String generateModificationsNotStagedSection() {
+      StringBuilder output = new StringBuilder();
+
+      output.append("=== Modifications Not Staged For Commit ===\n");
+      // TODO: Add logic to generate this section
+      output.append("\n");
+
+      return output.toString();
+    }
+
+    private static String generateUntrackedFilesSection() {
+      StringBuilder output = new StringBuilder();
+
+      output.append("=== Untracked Files ===\n");
+      getUntrackedFiles().forEach(fileName -> output.append(fileName).append("\n"));
+      output.append("\n");
+
+      return output.toString();
     }
   }
 }

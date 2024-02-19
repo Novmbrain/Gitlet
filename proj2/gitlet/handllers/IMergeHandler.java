@@ -18,6 +18,6 @@ import gitlet.models.Repository;
  * @author: Wenjie FU
  * @date: 15/02/2024
  **/
-public interface IHandler {
+public interface IMergeHandler {
   boolean handle(String fileName, Commit headCommit, Commit givenCommit, Commit splitPointCommit, Repository repository);
 }

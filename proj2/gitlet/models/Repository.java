@@ -48,8 +48,8 @@ public class Repository {
     return new File(Head.getHEADCommitPath()).getName();
   }
 
-  private static List<IHandler> getMergeHandlers() {
-    return List.of(new Handler1(), new Handler2(), new Handler3(), new Handler4(), new Handler5(), new Handler6(), new Handler7());
+  private static List<IMergeHandler> getMergeHandlers() {
+    return List.of(new MergeHandler1(), new MergeHandler2(), new MergeHandler3(), new MergeHandler4(), new MergeHandler5(), new MergeHandler6(), new MergeHandler7());
   }
 
   // TODO: add a strict mode to check if the current working directory is a gitlet repository
@@ -413,7 +413,7 @@ public class Repository {
       }
 
       for (String fileName : allMergedFiles) {
-        for (IHandler handler : getMergeHandlers()) {
+        for (IMergeHandler handler : getMergeHandlers()) {
           boolean handled = handler.handle(fileName, current, given, lastCommonAncestor, this);
           if (handled) {
             break;

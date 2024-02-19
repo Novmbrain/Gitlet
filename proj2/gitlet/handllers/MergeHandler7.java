@@ -15,7 +15,7 @@ import static gitlet.utils.Constants.CWD;
  * @author: Wenjie FU
  * @date: 15/02/2024
  **/
-public class Handler7 implements IHandler{
+public class MergeHandler7 implements IMergeHandler {
   @Override
   public boolean handle(String fileName, Commit headCommit, Commit givenCommit, Commit splitPointCommit, Repository repository) {
     boolean handled = false;

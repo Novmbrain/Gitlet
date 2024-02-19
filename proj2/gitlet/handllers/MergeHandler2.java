@@ -9,7 +9,7 @@ import gitlet.models.Repository;
  * @author: Wenjie FU
  * @date: 15/02/2024
  **/
-public class Handler2 implements IHandler {
+public class MergeHandler2 implements IMergeHandler {
   @Override
   public boolean handle(String fileName, Commit headCommit, Commit givenCommit, Commit splitPointCommit, Repository repository) {
     boolean handled = false;

@@ -4,28 +4,22 @@ import gitlet.models.Commit;
 import gitlet.models.Repository;
 
 /**
- * @className: Hander1
- * @description: Handle the case where the file is modified in other but not HEAD → Other"
+ * @className: Handler4
+ * @description: Handle the case where the file is unmodified in Other but not present in HEAD → Remain removal, do nothing
  * @author: Wenjie FU
  * @date: 15/02/2024
  **/
-public class Handler1 implements IHandler {
+public class MergeHandler4 implements IMergeHandler {
   @Override
   public boolean handle(String fileName, Commit headCommit, Commit givenCommit, Commit splitPointCommit, Repository repository) {
     boolean handled = false;
 
-    if (headCommit.containsFile(fileName)
+    if (!headCommit.containsFile(fileName)
       && givenCommit.containsFile(fileName)
       && splitPointCommit.containsFile(fileName)) {
-
       String splitFileHash = splitPointCommit.getBlob(fileName).getFileHash();
-
-      if (headCommit.isFileIdentical(fileName, splitFileHash)
-        && !givenCommit.isFileIdentical(fileName, splitFileHash)) {
-        // 1. take the version of other branch
-        repository.checkoutFileFromCommit(givenCommit.sha1Hash, fileName);
-        // 2. add the file to the staging area
-        repository.add(fileName);
+      if (givenCommit.isFileIdentical(fileName, splitFileHash)) {
+        // Do nothing
         handled = true;
       }
     }

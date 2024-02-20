@@ -1,6 +1,6 @@
 package gitlet.models;
 
-import gitlet.utils.ObjectsHelper;
+import gitlet.utils.RepositoryHelper;
 import gitlet.utils.Utils;
 
 /**
@@ -39,6 +39,6 @@ public class Blob extends GitletObject {
   }
 
   public void persist() {
-    ObjectsHelper.persistObject(this.sha1Hash(), this);
+    RepositoryHelper.persistObject(this.sha1Hash(), this);
   }
 }

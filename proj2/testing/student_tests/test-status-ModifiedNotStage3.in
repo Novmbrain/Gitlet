@@ -1,0 +1,26 @@
+# Staged for addition, but deleted in the working directory;
+
+> init
+<<<
+
++ a.txt a.txt
+> add a.txt
+<<<
+
+- a.txt
+
+> status
+=== Branches ===
+*master
+
+=== Staged Files ===
+a.txt
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+a.txt
+
+=== Untracked Files ===
+
+<<<

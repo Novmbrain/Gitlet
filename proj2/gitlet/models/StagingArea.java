@@ -1,5 +1,7 @@
 package gitlet.models;
 
+import gitlet.utils.RepositoryHelper;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -98,5 +100,10 @@ public class StagingArea implements Serializable {
 
   public boolean isEmpty() {
     return stagedBlobs.isEmpty() && removedBlobs.isEmpty();
+  }
+
+  public Blob getStagedBlob(String fileName) {
+    String blobHash = stagedBlobs.get(fileName);
+    return blobHash == null ? null : RepositoryHelper.getBlob(blobHash);
   }
 }

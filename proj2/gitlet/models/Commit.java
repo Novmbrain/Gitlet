@@ -1,7 +1,7 @@
 package gitlet.models;
 
 
-import gitlet.utils.ObjectsHelper;
+import gitlet.utils.RepositoryHelper;
 import gitlet.utils.Utils;
 
 import java.util.Date;
@@ -76,7 +76,7 @@ public class Commit extends GitletObject {
 
   public void persist() {
     sha1Hash = this.sha1Hash();
-    ObjectsHelper.persistObject(sha1Hash, this);
+    RepositoryHelper.persistObject(sha1Hash, this);
   }
 
   public void updateIndex(StagingArea stagingArea) {
@@ -95,7 +95,7 @@ public class Commit extends GitletObject {
     if (firstParentHash.isEmpty()) {
       return null;
     } else {
-      return ObjectsHelper.getCommit(firstParentHash);
+      return RepositoryHelper.getCommit(firstParentHash);
     }
   }
 
@@ -103,30 +103,30 @@ public class Commit extends GitletObject {
     return fileNameToBlobHash.containsKey(fileName);
   }
 
-  public boolean isFileIdentical(String fileName) {
+  public boolean isFileInRepoIdentical(String fileName) {
     if (!fileNameToBlobHash.containsKey(fileName)) {
       return false;
     }
 
     String blobHash = fileNameToBlobHash.get(fileName);
-    Blob blob = ObjectsHelper.getBlob(blobHash);
+    Blob blob = RepositoryHelper.getBlob(blobHash);
     String hash = Utils.sha1(fileName, Utils.readContentsAsString(Utils.join(CWD, fileName)));
     return blob.getFileHash().equals(hash);
   }
 
-  public boolean isFileIdentical(String fileName, String fileHash) {
+  public boolean isFileInRepoIdentical(String fileName, String fileHash) {
     if (!fileNameToBlobHash.containsKey(fileName)) {
       return false;
     }
 
     String blobHash = fileNameToBlobHash.get(fileName);
-    Blob blob = ObjectsHelper.getBlob(blobHash);
+    Blob blob = RepositoryHelper.getBlob(blobHash);
     return blob.getFileHash().equals(fileHash);
   }
 
   public Blob getBlob(String fileName) {
     String blobHash = fileNameToBlobHash.get(fileName);
-    return blobHash == null ? null : ObjectsHelper.getBlob(blobHash);
+    return blobHash == null ? null : RepositoryHelper.getBlob(blobHash);
   }
 
   @Override

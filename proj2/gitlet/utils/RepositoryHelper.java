@@ -8,8 +8,8 @@ import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static gitlet.utils.Constants.OBJECTS_DIR;
-import static gitlet.utils.Constants.REFS_HEADS_DIR;
+import static gitlet.utils.Constants.*;
+import static gitlet.utils.Constants.CWD;
 import static gitlet.utils.Utils.*;
 
 /**
@@ -18,7 +18,7 @@ import static gitlet.utils.Utils.*;
  * @author: Wenjie FU
  * @date: 27/01/2024
  **/
-public class ObjectsHelper {
+public class RepositoryHelper {
   public static Commit getCommit(String commitHash) {
     if (commitHash.length() < 2) {
       messageAndExit("The commit hash is too short.");
@@ -65,6 +65,10 @@ public class ObjectsHelper {
     File indexDirectory = getIndexDirectory(hash);
     String rest = hash.substring(2);
 
+    if (!indexDirectory.exists()) {
+      messageAndExit("No commit with that id exists.");
+    }
+
     List<String> matchingFiles = Utils.plainFilenamesIn(indexDirectory).stream().filter(name -> name.startsWith(rest)).collect(Collectors.toList());
 
     if (matchingFiles.isEmpty()) {
@@ -77,6 +81,19 @@ public class ObjectsHelper {
 
 
   public static Commit getBranchTipCommit(String branchName) {
-    return ObjectsHelper.getCommit(readContentsAsString(join(REFS_HEADS_DIR, branchName)));
+    return RepositoryHelper.getCommit(readContentsAsString(join(REFS_HEADS_DIR, branchName)));
+  }
+
+
+  public static String readFileFromRepositoryAsString(String fileName) {
+    return readContentsAsString(join(CWD, fileName));
+  }
+
+  public static boolean isFileExistInRepository(String fileName) {
+    return plainFilenamesIn(CWD).stream().anyMatch(name -> name.equals(fileName));
+  }
+
+  public static boolean branchExists(String branchName) {
+    return Utils.join(REFS_HEADS_DIR, branchName).exists();
   }
 }

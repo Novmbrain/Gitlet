@@ -26,10 +26,10 @@ public class MergeHandler7 implements IMergeHandler {
       Blob blob = splitPointCommit.getBlob(fileName);
       String splitFileHash = blob == null ? "" : blob.getFileHash();
 
-      if (headCommit.isFileIdentical(fileName, givenCommit.getBlob(fileName).getFileHash())) {
+      if (headCommit.isFileInRepoIdentical(fileName, givenCommit.getBlob(fileName).getFileHash())) {
         // Do nothing
         handled = true;
-      } else if (!headCommit.isFileIdentical(fileName, splitFileHash) && !givenCommit.isFileIdentical(fileName, splitFileHash)) {
+      } else if (!headCommit.isFileInRepoIdentical(fileName, splitFileHash) && !givenCommit.isFileInRepoIdentical(fileName, splitFileHash)) {
         // conflict handling
         handleConflict(fileName, headCommit, givenCommit, repository);
         handled = true;

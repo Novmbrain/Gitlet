@@ -1,0 +1,28 @@
+# tracked in the current commit, changed in the working directory, but not staged;
+
+> init
+<<<
+
++ a.txt a.txt
+> add a.txt
+<<<
+
+> commit "add a.txt"
+<<<
+
++ a.txt b.txt
+
+> status
+=== Branches ===
+*master
+
+=== Staged Files ===
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+a.txt
+
+=== Untracked Files ===
+
+<<<

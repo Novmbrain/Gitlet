@@ -1,7 +1,7 @@
 package gitlet.models;
 
 import gitlet.handllers.*;
-import gitlet.utils.ObjectsHelper;
+import gitlet.utils.RepositoryHelper;
 import gitlet.utils.Utils;
 
 import java.io.File;
@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static gitlet.utils.Constants.*;
+import static gitlet.utils.RepositoryHelper.*;
 import static gitlet.utils.Utils.*;
 
 public class Repository {
@@ -126,7 +127,7 @@ public class Repository {
     // if the file is identical to the version in the current commit, do not stage it to be added
     // -- case 1: the file is not in the staging area -> do nothing
     // -- case 2: the file is in the staging area -> remove it from the staging area
-    if (Head.getHEADCommit().isFileIdentical(fileName)) {
+    if (Head.getHEADCommit().isFileInRepoIdentical(fileName)) {
       if (stagingArea.contains(fileName)) {
         stagingArea.clearStagedBlob(fileName);
       }
@@ -196,7 +197,7 @@ public class Repository {
   }
 
   public void status() {
-    StatusPrinter.status();
+    new StatusPrinter().status();
   }
 
   /**
@@ -220,10 +221,10 @@ public class Repository {
   }
 
   public void checkoutFileFromCommit(String commitHash, String fileName) {
-    if (!ObjectsHelper.objectExists(commitHash)) {
+    if (!RepositoryHelper.objectExists(commitHash)) {
       messageAndExit("No commit with that id exists.");
     } else {
-      Commit commit = ObjectsHelper.getCommit(commitHash);
+      Commit commit = RepositoryHelper.getCommit(commitHash);
 
       if (!commit.containsFile(fileName)) {
         messageAndExit("File does not exist in that commit.");
@@ -246,7 +247,7 @@ public class Repository {
       messageAndExit("No need to checkout the current branch.");
     } else {
 
-      Commit givenCommit = ObjectsHelper.getBranchTipCommit(branchName);
+      Commit givenCommit = RepositoryHelper.getBranchTipCommit(branchName);
 
       givenCommit.getAllFiles().stream()
         .filter(getUntrackedFiles()::contains)
@@ -326,7 +327,7 @@ public class Repository {
   private Set<Commit> getAllCommits() {
     return plainFilenamesIn(REFS_HEADS_DIR)
       .stream()
-      .map(branchName -> ObjectsHelper.getCommit(readContentsAsString(join(REFS_HEADS_DIR, branchName))))
+      .map(branchName -> RepositoryHelper.getCommit(readContentsAsString(join(REFS_HEADS_DIR, branchName))))
       .flatMap(tipCommit -> Stream.iterate(tipCommit, Objects::nonNull, Commit::getFirstParentCommit))
       .collect(Collectors.toSet());
   }
@@ -340,8 +341,8 @@ public class Repository {
       messageAndExit("You have uncommitted changes.");
     } else {
       // TODO: Consider to put the tip commit as a field of the Class Branch
-      Commit given = ObjectsHelper.getBranchTipCommit(givenBranchName);
-      Commit current = ObjectsHelper.getCommit(currentBranch.getTipHash());
+      Commit given = RepositoryHelper.getBranchTipCommit(givenBranchName);
+      Commit current = RepositoryHelper.getCommit(currentBranch.getTipHash());
       Commit lastCommonAncestor = findLastCommonAncestor(current, given);
 
       Set<String> allMergedFiles = new HashSet<>(given.getAllFiles());
@@ -400,10 +401,10 @@ public class Repository {
   }
 
   public void reset(String commitHash) {
-    if (!ObjectsHelper.objectExists(commitHash)) {
+    if (!RepositoryHelper.objectExists(commitHash)) {
       messageAndExit("No commit with that id exists.");
     } else {
-      Commit commit = ObjectsHelper.getCommit(commitHash);
+      Commit commit = RepositoryHelper.getCommit(commitHash);
 
       commit.getAllFiles().stream()
         .filter(getUntrackedFiles()::contains)
@@ -426,8 +427,14 @@ public class Repository {
   }
 
 
-  private static class StatusPrinter {
-    public static void status() {
+  private class StatusPrinter {
+    Set<String> stagedForRemovalFiles = stagingArea.getRemovedBlobs();
+    Set<String> stagedForAdditionFiles = stagingArea.getStagedBlobs().keySet();
+    Set<String> committedFiles = Head.getHEADCommit().getAllFiles();
+    List<String> allFilesInCWD = plainFilenamesIn(CWD);
+    Commit headCommit = Head.getHEADCommit();
+
+    public void status() {
       StringBuilder output = new StringBuilder();
 
       output.append(generateBranchesSection());
@@ -439,7 +446,7 @@ public class Repository {
       System.out.println(output);
     }
 
-    private static String generateBranchesSection() {
+    private String generateBranchesSection() {
       StringBuilder output = new StringBuilder();
       List<String> branches = plainFilenamesIn(REFS_HEADS_DIR);
 
@@ -458,9 +465,8 @@ public class Repository {
       return output.toString();
     }
 
-    private static String generateStagedFilesSection() {
+    private String generateStagedFilesSection() {
       StringBuilder output = new StringBuilder();
-      Set<String> stagedForAdditionFiles = stagingArea.getStagedBlobs().keySet();
 
       output.append("=== Staged Files ===\n");
       stagedForAdditionFiles.forEach(blobName -> output.append(blobName).append("\n"));
@@ -469,9 +475,8 @@ public class Repository {
       return output.toString();
     }
 
-    private static String generateRemovedFilesSection() {
+    private String generateRemovedFilesSection() {
       StringBuilder output = new StringBuilder();
-      Set<String> stagedForRemovalFiles = stagingArea.getRemovedBlobs();
 
       output.append("=== Removed Files ===\n");
       stagedForRemovalFiles.forEach(blobName -> output.append(blobName).append("\n"));
@@ -480,17 +485,35 @@ public class Repository {
       return output.toString();
     }
 
-    private static String generateModificationsNotStagedSection() {
+    private String generateModificationsNotStagedSection() {
       StringBuilder output = new StringBuilder();
+      Set<String> files = new HashSet<>();
 
       output.append("=== Modifications Not Staged For Commit ===\n");
-      // TODO: Add logic to generate this section
+      // Staged for addition, but with different contents than in the working directory
+      allFilesInCWD.stream().filter(fileName -> stagedForAdditionFiles.contains(fileName))
+        .filter(fileName -> !stagingArea.getStagedBlob(fileName).getFileHash().equals(Utils.sha1(fileName, readFileFromRepositoryAsString(fileName))))
+        .forEach(files::add);
+
+
+      // Tracked in the current commit, changed in the working directory, but not staged
+      // Not staged for removal, but tracked in the current commit and deleted from the working directory.
+      committedFiles.stream()
+        .filter(fileName -> !stagedForAdditionFiles.contains(fileName) && !stagedForRemovalFiles.contains(fileName))
+        .filter(fileName -> !allFilesInCWD.contains(fileName) || !Head.getHEADCommit().isFileInRepoIdentical(fileName))
+        .forEach(files::add);
+
+      // - Staged for addition, but deleted in the working directory
+      stagedForAdditionFiles.stream()
+        .filter(fileName -> !allFilesInCWD.contains(fileName)).forEach(files::add);
+
+      files.forEach(fileName -> output.append(fileName).append("\n"));
       output.append("\n");
 
       return output.toString();
     }
 
-    private static String generateUntrackedFilesSection() {
+    private String generateUntrackedFilesSection() {
       StringBuilder output = new StringBuilder();
 
       output.append("=== Untracked Files ===\n");

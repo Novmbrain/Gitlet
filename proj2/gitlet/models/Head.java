@@ -7,7 +7,7 @@ package gitlet.models;
  * @date: 26/01/2024
  **/
 
-import gitlet.utils.ObjectsHelper;
+import gitlet.utils.RepositoryHelper;
 import gitlet.utils.Utils;
 
 import java.io.File;
@@ -26,7 +26,7 @@ public class Head {
   static {
     HEADCommitPath = Utils.readContentsAsString(HEAD_FILE);
     String HEADCommitHash = Utils.readContentsAsString(new File(HEADCommitPath));
-    HEADCommit = ObjectsHelper.getCommit(HEADCommitHash);
+    HEADCommit = RepositoryHelper.getCommit(HEADCommitHash);
   }
 
   public static Commit getHEADCommit() {
@@ -44,7 +44,7 @@ public class Head {
 
   public static Blob getBlob(String fileName) {
     String blobHash = HEADCommit.getFileNameToBlobHash().get(fileName);
-    return ObjectsHelper.getBlob(blobHash);
+    return RepositoryHelper.getBlob(blobHash);
   }
 
   public static String getHEADCommitPath() {

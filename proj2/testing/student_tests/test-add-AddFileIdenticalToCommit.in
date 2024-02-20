@@ -12,8 +12,7 @@ I definitions.inc
 > commit "added wug"
 <<<
 
-+ wug.txt notwug.txt
-> add wug.txt
+> rm wug.txt
 <<<
 
 > status
@@ -21,9 +20,9 @@ I definitions.inc
 *master
  
 === Staged Files ===
-wug.txt
- 
+
 === Removed Files ===
+wug.txt
  
 === Modifications Not Staged For Commit ===
  

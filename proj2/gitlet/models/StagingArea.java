@@ -73,6 +73,7 @@ public class StagingArea implements Serializable {
   public void clearStagedBlob(String fileName) {
     join(OBJECTS_DIR, fileName).delete();
     stagedBlobs.remove(fileName);
+    removedBlobs.remove(fileName);
   }
 
   public void clearAllStagedBlobs() {

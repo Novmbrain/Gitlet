@@ -1,0 +1,46 @@
+I definitions.inc
+
+> init
+<<<
+
++ wug.txt wug.txt
+> add wug.txt
+<<<
+
+> commit "add wug.txt"
+<<<
+
++ wug.txt notwug.txt
+> add wug.txt
+<<<
+
+> status
+=== Branches ===
+*master
+
+=== Staged Files ===
+wug.txt
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<
+
+> log
+===
+${COMMIT_HEAD}
+add wug.txt
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+
+D UID1 "${1}"
+> checkout ${UID1} ++ wug.txt
+Incorrect operands.
+<<<

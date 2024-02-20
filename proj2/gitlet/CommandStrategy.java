@@ -119,6 +119,10 @@ public class CommandStrategy {
       String fileName = args[2];
       repository.checkoutFile(fileName);
     } else if (length == 4) {
+      if (args[2] != null && !args[2].equals("--")) {
+        messageAndExit("Incorrect operands.");
+      }
+
       String commitHash = args[1];
       String fileName = args[3];
       repository.checkoutFileFromCommit(commitHash, fileName);

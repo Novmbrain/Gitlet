@@ -69,11 +69,21 @@ public class MergeHandler7 implements IMergeHandler {
             givenFileContent = givenCommit.getBlob(fileName).getContent();
         }
 
-        String conflictContent = "<<<<<<< HEAD\n"
-            + headFileContent
-            + "=======\n"
-            + givenFileContent
-            + ">>>>>>>";
+        String conflictContent = "<<<<<<< HEAD\n";
+
+        if (headFileContent.isEmpty()) {
+            conflictContent += "=======\n";
+        } else {
+            conflictContent += headFileContent + "\n=======\n";
+        }
+
+        if (givenFileContent.isEmpty()) {
+            conflictContent += ">>>>>>>";
+        } else {
+            conflictContent += givenFileContent + "\n>>>>>>>";
+
+        }
+
         Utils.writeContents(Utils.join(CWD, fileName), conflictContent);
         repository.add(fileName);
 

@@ -45,5 +45,7 @@ public class MergeHandler7 implements IMergeHandler {
     String conflictContent = "<<<<<<< HEAD\n" + headFileContent + "\n" + "=======\n" + givenFileContent + "\n" + ">>>>>>>";
     Utils.writeContents(Utils.join(CWD, fileName), conflictContent);
     repository.add(fileName);
+
+    System.out.println("Encountered a merge conflict.");
   }
 }

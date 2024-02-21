@@ -25,6 +25,7 @@
 <<<
 
 > merge given
+Encountered a merge conflict.
 <<<
 
 = a.txt a_b_conflict.txt

@@ -24,17 +24,31 @@ public class MergeHandler7 implements IMergeHandler {
                           Repository repository) {
         boolean handled = false;
 
-        if (headCommit.containsFile(fileName)
-            && givenCommit.containsFile(fileName)) {
+        if (!headCommit.containsFile(fileName) && !givenCommit.containsFile(fileName) && splitPointCommit.containsFile(fileName)) {
+            handled = true;
+        } else if (!headCommit.containsFile(fileName)) {
+            Blob blob = givenCommit.getBlob(fileName);
+            String givenFileHash = blob.getFileHash();
+
+            if (!splitPointCommit.isFileEqual(fileName, givenFileHash)) {
+                handleConflict(fileName, headCommit, givenCommit, repository);
+            }
+        } else if (!givenCommit.containsFile(fileName)) {
+            Blob blob = headCommit.getBlob(fileName);
+            String headFileHash = blob.getFileHash();
+
+            if (!splitPointCommit.isFileEqual(fileName, headFileHash)) {
+                handleConflict(fileName, headCommit, givenCommit, repository);
+            }
+        } else if (headCommit.containsFile(fileName) && givenCommit.containsFile(fileName)) {
 
             Blob blob = splitPointCommit.getBlob(fileName);
-            String splitFileHash = blob == null ? "" : blob.getFileHash();
+            String splitFileHash = blob.getFileHash();
 
-            if (headCommit.isFileInRepoIdentical(fileName, givenCommit.getBlob(fileName).getFileHash())) {
+            if (headCommit.isFileEqual(fileName, givenCommit.getBlob(fileName).getFileHash())) {
                 // Do nothing
                 handled = true;
-            } else if (!headCommit.isFileInRepoIdentical(fileName, splitFileHash)
-                && !givenCommit.isFileInRepoIdentical(fileName, splitFileHash)) {
+            } else if (!headCommit.isFileEqual(fileName, splitFileHash) && !givenCommit.isFileEqual(fileName, splitFileHash)) {
                 // conflict handling
                 handleConflict(fileName, headCommit, givenCommit, repository);
                 handled = true;
@@ -44,13 +58,22 @@ public class MergeHandler7 implements IMergeHandler {
     }
 
     private void handleConflict(String fileName, Commit headCommit, Commit givenCommit, Repository repository) {
-        String headFileContent = headCommit.getBlob(fileName).getContent();
-        String givenFileContent = givenCommit.getBlob(fileName).getContent();
+        String headFileContent = "";
+        String givenFileContent = "";
+
+        if (headCommit.getBlob(fileName) != null) {
+            headFileContent = headCommit.getBlob(fileName).getContent();
+        }
+
+        if (givenCommit.getBlob(fileName) != null) {
+            givenFileContent = givenCommit.getBlob(fileName).getContent();
+        }
 
         String conflictContent = "<<<<<<< HEAD\n"
-            + headFileContent + "\n"
+            + headFileContent
             + "=======\n"
-            + givenFileContent + "\n" + ">>>>>>>";
+            + givenFileContent
+            + ">>>>>>>";
         Utils.writeContents(Utils.join(CWD, fileName), conflictContent);
         repository.add(fileName);
 

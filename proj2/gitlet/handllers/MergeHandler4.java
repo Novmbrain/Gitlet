@@ -23,7 +23,7 @@ public class MergeHandler4 implements IMergeHandler {
             && givenCommit.containsFile(fileName)
             && splitPointCommit.containsFile(fileName)) {
             String splitFileHash = splitPointCommit.getBlob(fileName).getFileHash();
-            if (givenCommit.isFileInRepoIdentical(fileName, splitFileHash)) {
+            if (givenCommit.isFileEqual(fileName, splitFileHash)) {
                 // Do nothing
                 handled = true;
             }

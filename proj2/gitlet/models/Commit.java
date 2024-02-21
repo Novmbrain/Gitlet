@@ -119,7 +119,7 @@ public class Commit extends GitletObject {
         return fileNameToBlobHash.containsKey(fileName);
     }
 
-    public boolean isFileInRepoIdentical(String fileName) {
+    public boolean isFileInRepoEqual(String fileName) {
         if (!fileNameToBlobHash.containsKey(fileName)) {
             return false;
         }
@@ -130,7 +130,7 @@ public class Commit extends GitletObject {
         return blob.getFileHash().equals(hash);
     }
 
-    public boolean isFileInRepoIdentical(String fileName, String fileHash) {
+    public boolean isFileEqual(String fileName, String fileHash) {
         if (!fileNameToBlobHash.containsKey(fileName)) {
             return false;
         }

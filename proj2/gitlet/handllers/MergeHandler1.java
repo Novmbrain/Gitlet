@@ -24,8 +24,8 @@ public class MergeHandler1 implements IMergeHandler {
 
             String splitFileHash = splitPointCommit.getBlob(fileName).getFileHash();
 
-            if (headCommit.isFileInRepoIdentical(fileName, splitFileHash)
-                && !givenCommit.isFileInRepoIdentical(fileName, splitFileHash)) {
+            if (headCommit.isFileEqual(fileName, splitFileHash)
+                && !givenCommit.isFileEqual(fileName, splitFileHash)) {
                 // 1. take the version of other branch
                 repository.checkoutFileFromCommit(givenCommit.getSha1Hash(), fileName);
                 // 2. add the file to the staging area

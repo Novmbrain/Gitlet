@@ -10,26 +10,30 @@ import gitlet.models.Repository;
  * @date: 15/02/2024
  **/
 public class MergeHandler1 implements IMergeHandler {
-  @Override
-  public boolean handle(String fileName, Commit headCommit, Commit givenCommit, Commit splitPointCommit, Repository repository) {
-    boolean handled = false;
+    @Override
+    public boolean handle(String fileName,
+                          Commit headCommit,
+                          Commit givenCommit,
+                          Commit splitPointCommit,
+                          Repository repository) {
+        boolean handled = false;
 
-    if (headCommit.containsFile(fileName)
-      && givenCommit.containsFile(fileName)
-      && splitPointCommit.containsFile(fileName)) {
+        if (headCommit.containsFile(fileName)
+            && givenCommit.containsFile(fileName)
+            && splitPointCommit.containsFile(fileName)) {
 
-      String splitFileHash = splitPointCommit.getBlob(fileName).getFileHash();
+            String splitFileHash = splitPointCommit.getBlob(fileName).getFileHash();
 
-      if (headCommit.isFileInRepoIdentical(fileName, splitFileHash)
-        && !givenCommit.isFileInRepoIdentical(fileName, splitFileHash)) {
-        // 1. take the version of other branch
-        repository.checkoutFileFromCommit(givenCommit.sha1Hash, fileName);
-        // 2. add the file to the staging area
-        repository.add(fileName);
-        handled = true;
-      }
+            if (headCommit.isFileInRepoIdentical(fileName, splitFileHash)
+                && !givenCommit.isFileInRepoIdentical(fileName, splitFileHash)) {
+                // 1. take the version of other branch
+                repository.checkoutFileFromCommit(givenCommit.getSha1Hash(), fileName);
+                // 2. add the file to the staging area
+                repository.add(fileName);
+                handled = true;
+            }
+        }
+
+        return handled;
     }
-
-    return handled;
-  }
 }

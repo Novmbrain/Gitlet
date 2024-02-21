@@ -10,17 +10,18 @@ import gitlet.models.Repository;
  * @date: 15/02/2024
  **/
 public class MergeHandler5 implements IMergeHandler {
-  @Override
-  public boolean handle(String fileName, Commit headCommit, Commit givenCommit, Commit splitPointCommit, Repository repository) {
-    boolean handled = false;
+    @Override
+    public boolean handle(String fileName,
+                          Commit headCommit,
+                          Commit givenCommit,
+                          Commit splitPointCommit,
+                          Repository repository) {
+        boolean handled = headCommit.containsFile(fileName)
+            && !givenCommit.containsFile(fileName)
+            && !splitPointCommit.containsFile(fileName);
 
-    if (headCommit.containsFile(fileName)
-      && !givenCommit.containsFile(fileName)
-      && !splitPointCommit.containsFile(fileName)) {
-      // Do nothing
-      handled = true;
+        // Do nothing
+
+        return handled;
     }
-
-    return handled;
-  }
 }

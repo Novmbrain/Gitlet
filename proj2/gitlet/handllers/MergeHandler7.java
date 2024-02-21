@@ -10,42 +10,53 @@ import static gitlet.utils.Constants.CWD;
 /**
  * @className: Handler7
  * @description: Handle the case where the file is modified in other and HEAD
- *     - in the same way →do nothing
- *     - in diff ways → conflict
+ * - in the same way →do nothing
+ * - in diff ways → conflict
  * @author: Wenjie FU
  * @date: 15/02/2024
  **/
 public class MergeHandler7 implements IMergeHandler {
-  @Override
-  public boolean handle(String fileName, Commit headCommit, Commit givenCommit, Commit splitPointCommit, Repository repository) {
-    boolean handled = false;
+    @Override
+    public boolean handle(String fileName,
+                          Commit headCommit,
+                          Commit givenCommit,
+                          Commit splitPointCommit,
+                          Repository repository) {
+        boolean handled = false;
 
-    if (headCommit.containsFile(fileName)
-      && givenCommit.containsFile(fileName)) {
+        if (headCommit.containsFile(fileName)
+            && givenCommit.containsFile(fileName)) {
 
-      Blob blob = splitPointCommit.getBlob(fileName);
-      String splitFileHash = blob == null ? "" : blob.getFileHash();
+            Blob blob = splitPointCommit.getBlob(fileName);
+            String splitFileHash = blob == null ? "" : blob.getFileHash();
 
-      if (headCommit.isFileInRepoIdentical(fileName, givenCommit.getBlob(fileName).getFileHash())) {
-        // Do nothing
-        handled = true;
-      } else if (!headCommit.isFileInRepoIdentical(fileName, splitFileHash) && !givenCommit.isFileInRepoIdentical(fileName, splitFileHash)) {
-        // conflict handling
-        handleConflict(fileName, headCommit, givenCommit, repository);
-        handled = true;
-      }
+            if (headCommit.isFileInRepoIdentical(fileName, givenCommit.getBlob(fileName).getFileHash())) {
+                // Do nothing
+                handled = true;
+            } else if (!headCommit.isFileInRepoIdentical(fileName, splitFileHash)
+                && !givenCommit.isFileInRepoIdentical(fileName, splitFileHash)) {
+                // conflict handling
+                handleConflict(fileName, headCommit, givenCommit, repository);
+                handled = true;
+            }
+        }
+        return handled;
     }
-    return handled;
-  }
 
-  private void handleConflict(String fileName, Commit headCommit, Commit givenCommit, Repository repository) {
-    String headFileContent = headCommit.getBlob(fileName).getContent();
-    String givenFileContent = givenCommit.getBlob(fileName).getContent();
+    private void handleConflict(String fileName, Commit headCommit, Commit givenCommit, Repository repository) {
+        String headFileContent = headCommit.getBlob(fileName).getContent();
+        String givenFileContent = givenCommit.getBlob(fileName).getContent();
 
-    String conflictContent = "<<<<<<< HEAD\n" + headFileContent + "\n" + "=======\n" + givenFileContent + "\n" + ">>>>>>>";
-    Utils.writeContents(Utils.join(CWD, fileName), conflictContent);
-    repository.add(fileName);
+        String conflictContent = new StringBuilder().
+            append("<<<<<<< HEAD\n").
+            append(headFileContent).
+            append("\n=======\n").
+            append(givenFileContent).
+            append("\n>>>>>>>").
+            toString();
+        Utils.writeContents(Utils.join(CWD, fileName), conflictContent);
+        repository.add(fileName);
 
-    System.out.println("Encountered a merge conflict.");
-  }
+        System.out.println("Encountered a merge conflict.");
+    }
 }

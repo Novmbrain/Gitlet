@@ -429,9 +429,10 @@ public class Repository {
                 ifPresent(file ->
                     messageAndExit("There is an untracked file in the way; delete it, or add and commit it first."));
 
-            Head.getHeadCommit().getAllFiles().forEach(fileName -> Utils.restrictedDelete(join(CWD, fileName)));
+            Head.getHeadCommit().getAllFiles().forEach(fileName -> join(CWD, fileName).delete());
 
             commit.restoreCommit();
+            currentBranch.setTipCommit(commit);
             Head.update(commit, currentBranch.getName());
 
             stagingArea.clearAllStagedBlobs();
@@ -439,6 +440,7 @@ public class Repository {
 
             stagingArea.persist();
             Head.persist();
+            currentBranch.persist();
         }
     }
 

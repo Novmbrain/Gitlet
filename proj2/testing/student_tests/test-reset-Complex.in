@@ -1,0 +1,99 @@
+I definitions.inc
+
+> init
+<<<
+
++ a.txt a.txt
+> add a.txt
+<<<
++ b.txt b.txt
+> add b.txt
+<<<
+
+> commit "Two files"
+<<<
+
+> branch other
+<<<
+
++ c.txt c.txt
+> add c.txt
+<<<
+
+> rm b.txt
+<<<
+> commit "Add c.txt and remove b.txt"
+<<<
+
+> checkout other
+<<<
+
+> rm a.txt
+<<<
+
++ d.txt d.txt
+> add d.txt
+<<<
+
+> commit "Add d.txt and remove a.txt"
+<<<
+
+> log
+===
+${COMMIT_HEAD}
+Add d.txt and remove a.txt
+
+===
+${COMMIT_HEAD}
+Two files
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+D INIT "${3}"
+D TWO "${2}"
+D OTHER1 "${1}"
+
+> checkout master
+<<<
+
+> log
+===
+${COMMIT_HEAD}
+Add c.txt and remove b.txt
+
+===
+${COMMIT_HEAD}
+Two files
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+D MASTER1 "${1}"
+
++ e.txt e.txt
+> add e.txt
+<<<
+
+> reset ${TWO}
+<<<
+
+> status
+=== Branches ===
+*master
+other
+
+=== Staged Files ===
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+e.txt
+
+<<<

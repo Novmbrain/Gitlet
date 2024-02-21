@@ -379,10 +379,26 @@ public class Repository {
   }
 
   private Commit findLastCommonAncestor(Commit commit1, Commit commit2) {
-    Set<Commit> commit1Ancestors = Stream.iterate(commit1, Objects::nonNull, Commit::getFirstParentCommit)
-      .collect(Collectors.toSet());
-    Set<Commit> commit2Ancestors = Stream.iterate(commit2, Objects::nonNull, Commit::getFirstParentCommit)
-      .collect(Collectors.toSet());
+
+    Set<Commit> commit1Ancestors = new HashSet<>();
+    Set<Commit> commit2Ancestors = new HashSet<>();
+
+    Queue<Commit> queue = new LinkedList<>();
+
+    queue.offer(commit1);
+    while (!queue.isEmpty()) {
+      Commit commit = queue.poll();
+      commit1Ancestors.add(commit);
+      commit.getAllParents().stream().filter(Objects::nonNull).forEach(queue::offer);
+    }
+
+    queue.offer(commit2);
+    while (!queue.isEmpty()) {
+      Commit commit = queue.poll();
+      commit2Ancestors.add(commit);
+      commit.getAllParents().stream().filter(Objects::nonNull).forEach(queue::offer);
+    }
+
     commit1Ancestors.retainAll(commit2Ancestors);
 
     return commit1Ancestors.stream().max(Comparator.comparing(Commit::getTimeStamp)).orElse(null);

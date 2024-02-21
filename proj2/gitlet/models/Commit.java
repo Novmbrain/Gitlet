@@ -4,10 +4,7 @@ package gitlet.models;
 import gitlet.utils.RepositoryHelper;
 import gitlet.utils.Utils;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static gitlet.utils.Constants.CWD;
 import static gitlet.utils.Utils.join;
@@ -92,11 +89,28 @@ public class Commit extends GitletObject {
   }
 
   public Commit getFirstParentCommit() {
-    if (firstParentHash.isEmpty()) {
+    if (isInitialCommit()) {
       return null;
-    } else {
-      return RepositoryHelper.getCommit(firstParentHash);
     }
+
+    return RepositoryHelper.getCommit(firstParentHash);
+  }
+
+  public Set<Commit> getAllParents() {
+    Set<Commit> parents = new HashSet<>();
+    if (Objects.nonNull(getFirstParentCommit())) {
+      parents.add(getFirstParentCommit());
+    }
+
+    if (Objects.nonNull(getSecondParentCommit())) {
+      parents.add(getSecondParentCommit());
+    }
+
+    return parents;
+  }
+
+  private Commit getSecondParentCommit() {
+    return secondParentHash.isEmpty() ? null : RepositoryHelper.getCommit(secondParentHash);
   }
 
   public boolean containsFile(String fileName) {
@@ -148,6 +162,10 @@ public class Commit extends GitletObject {
 
   public boolean isMergeCommit() {
     return !secondParentHash.isEmpty();
+  }
+
+  public boolean isInitialCommit() {
+    return firstParentHash.isEmpty();
   }
 
   public String getSecondParentHash() {

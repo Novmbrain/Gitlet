@@ -11,6 +11,5 @@ E .gitlet/refs
 E .gitlet/refs/heads
 E .gitlet/refs/heads/master
 E .gitlet/logs
-E .gitlet/logs/master
 E .gitlet/HEAD
 E .gitlet/index

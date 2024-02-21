@@ -79,6 +79,20 @@ public class Repository {
             collect(Collectors.toSet());
     }
 
+    private static Set<Commit> traverseCommitTree(Commit commit) {
+        Set<Commit> set = new HashSet<>();
+        Queue<Commit> queue = new LinkedList<>();
+        queue.offer(commit);
+
+        while (!queue.isEmpty()) {
+            Commit nextCommit = queue.poll();
+            set.add(nextCommit);
+            nextCommit.getAllParents().stream().filter(Objects::nonNull).forEach(queue::offer);
+        }
+
+        return set;
+    }
+
     public boolean gitletExists() {
         return GITLET_DIR.exists();
     }
@@ -120,9 +134,6 @@ public class Repository {
         master.setTipCommit(initialCommit);
         master.persist();
         currentBranch = master;
-
-        // Create a file named master in logs to store the log records of changes made to the master branch
-        join(LOGS_DIR, MASTER).createNewFile();
     }
 
     public void add(String fileName) {
@@ -326,11 +337,12 @@ public class Repository {
         }
     }
 
-    private Set<Commit> getAllCommits() {
-        return plainFilenamesIn(REFS_HEADS_DIR).stream().
-            map(branchName -> RepositoryHelper.getCommit(readContentsAsString(join(REFS_HEADS_DIR, branchName)))).
-            flatMap(tipCommit -> Stream.iterate(tipCommit, Objects::nonNull, Commit::getFirstParentCommit)).
-            collect(Collectors.toSet());
+    /**
+     * Get all the commits in the repository including the initial commit and the commit that is no longer reachable
+     * @return
+     */
+    private List<Commit> getAllCommits() {
+        return plainFilenamesIn(LOGS_DIR).stream().map(RepositoryHelper::getCommit).collect(Collectors.toList());
     }
 
     public void merge(String givenBranchName) {
@@ -380,25 +392,8 @@ public class Repository {
     }
 
     private Commit findLastCommonAncestor(Commit commit1, Commit commit2) {
-
-        Set<Commit> commit1Ancestors = new HashSet<>();
-        Set<Commit> commit2Ancestors = new HashSet<>();
-
-        Queue<Commit> queue = new LinkedList<>();
-
-        queue.offer(commit1);
-        while (!queue.isEmpty()) {
-            Commit commit = queue.poll();
-            commit1Ancestors.add(commit);
-            commit.getAllParents().stream().filter(Objects::nonNull).forEach(queue::offer);
-        }
-
-        queue.offer(commit2);
-        while (!queue.isEmpty()) {
-            Commit commit = queue.poll();
-            commit2Ancestors.add(commit);
-            commit.getAllParents().stream().filter(Objects::nonNull).forEach(queue::offer);
-        }
+        Set<Commit> commit1Ancestors = traverseCommitTree(commit1);
+        Set<Commit> commit2Ancestors = traverseCommitTree(commit2);
 
         commit1Ancestors.retainAll(commit2Ancestors);
 

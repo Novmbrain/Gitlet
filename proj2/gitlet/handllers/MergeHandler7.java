@@ -47,16 +47,13 @@ public class MergeHandler7 implements IMergeHandler {
         String headFileContent = headCommit.getBlob(fileName).getContent();
         String givenFileContent = givenCommit.getBlob(fileName).getContent();
 
-        String conflictContent = new StringBuilder().
-            append("<<<<<<< HEAD\n").
-            append(headFileContent).
-            append("\n=======\n").
-            append(givenFileContent).
-            append("\n>>>>>>>").
-            toString();
+        String conflictContent = "<<<<<<< HEAD\n"
+            + headFileContent + "\n"
+            + "=======\n"
+            + givenFileContent + "\n" + ">>>>>>>";
         Utils.writeContents(Utils.join(CWD, fileName), conflictContent);
         repository.add(fileName);
 
-        System.out.println("Encountered a merge conflict.");
+        System.out.print("Encountered a merge conflict.");
     }
 }

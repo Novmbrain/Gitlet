@@ -7,6 +7,7 @@ import gitlet.utils.Utils;
 import java.util.*;
 
 import static gitlet.utils.Constants.CWD;
+import static gitlet.utils.Constants.LOGS_DIR;
 import static gitlet.utils.Utils.join;
 import static gitlet.utils.Utils.writeContents;
 
@@ -73,6 +74,8 @@ public class Commit extends GitletObject {
     public void persist() {
         sha1Hash = this.sha1Hash();
         RepositoryHelper.persistObject(sha1Hash, this);
+        // write the commit hash to the logs directory, concatenate the commit hash to the end of the file
+        writeContents(join(LOGS_DIR, sha1Hash), sha1Hash );
     }
 
     public void updateIndex(StagingArea stagingArea) {

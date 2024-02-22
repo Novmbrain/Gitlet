@@ -5,7 +5,13 @@ import gitlet.models.Commit;
 import gitlet.models.Repository;
 import gitlet.utils.Utils;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+
 import static gitlet.utils.Constants.CWD;
+import static gitlet.utils.Utils.writeContents;
 
 /**
  * @className: Handler7
@@ -21,7 +27,7 @@ public class MergeHandler7 implements IMergeHandler {
                           Commit headCommit,
                           Commit givenCommit,
                           Commit splitPointCommit,
-                          Repository repository) {
+                          Repository repository) throws IOException {
         boolean handled = false;
 
         if (!headCommit.containsFile(fileName) && !givenCommit.containsFile(fileName) && splitPointCommit.containsFile(fileName)) {
@@ -57,34 +63,48 @@ public class MergeHandler7 implements IMergeHandler {
         return handled;
     }
 
-    private void handleConflict(String fileName, Commit headCommit, Commit givenCommit, Repository repository) {
-        String headFileContent = "";
-        String givenFileContent = "";
+    private void handleConflict(String fileName, Commit headCommit, Commit givenCommit, Repository repository) throws IOException {
+        //String headFileContent = "";
+        //String givenFileContent = "";
+        //
+        //if (headCommit.getBlob(fileName) != null) {
+        //    headFileContent = headCommit.getBlob(fileName).getContent();
+        //}
+        //
+        //if (givenCommit.getBlob(fileName) != null) {
+        //    givenFileContent = givenCommit.getBlob(fileName).getContent();
+        //}
+        //
+        //String conflictContent = "<<<<<<< HEAD\n";
+        //
+        //if (headFileContent.isEmpty()) {
+        //    conflictContent += "=======\n";
+        //} else {
+        //    conflictContent += headFileContent + "\n=======\n";
+        //}
+        //
+        //if (givenFileContent.isEmpty()) {
+        //    conflictContent += ">>>>>>>";
+        //} else {
+        //    conflictContent += givenFileContent + "\n>>>>>>>";
+        //
+        //}
 
-        if (headCommit.getBlob(fileName) != null) {
-            headFileContent = headCommit.getBlob(fileName).getContent();
+        byte[] current = "".getBytes(StandardCharsets.UTF_8);
+        byte[] given = "".getBytes(StandardCharsets.UTF_8);
+
+        if (Objects.nonNull(headCommit.getBlob(fileName))){
+            current = headCommit.getBlob(fileName).getContent().getBytes();
         }
 
-        if (givenCommit.getBlob(fileName) != null) {
-            givenFileContent = givenCommit.getBlob(fileName).getContent();
+        if (Objects.nonNull(givenCommit.getBlob(fileName))){
+            given = givenCommit.getBlob(fileName).getContent().getBytes();
         }
 
-        String conflictContent = "<<<<<<< HEAD\n";
+        File file = Utils.join(CWD, fileName);
+        file.createNewFile();
+        writeContents(file,"<<<<<<< HEAD\n",current,"=======\n",given,">>>>>>>\n");
 
-        if (headFileContent.isEmpty()) {
-            conflictContent += "=======\n";
-        } else {
-            conflictContent += headFileContent + "\n=======\n";
-        }
-
-        if (givenFileContent.isEmpty()) {
-            conflictContent += ">>>>>>>";
-        } else {
-            conflictContent += givenFileContent + "\n>>>>>>>";
-
-        }
-
-        Utils.writeContents(Utils.join(CWD, fileName), conflictContent);
         repository.add(fileName);
 
         System.out.print("Encountered a merge conflict.");

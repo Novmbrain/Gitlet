@@ -37,7 +37,11 @@ public class CommandStrategy {
         checkOperandLength(args, 2);
 
         String branchName = args[1];
-        repository.merge(branchName);
+        try {
+            repository.merge(branchName);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void rmBranch(String[] args, Repository repository) {

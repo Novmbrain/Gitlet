@@ -3,6 +3,8 @@ package gitlet.handllers;
 import gitlet.models.Commit;
 import gitlet.models.Repository;
 
+import java.io.IOException;
+
 /**
  * @className: IHandler
  * @description: 1. Handler1 : Modified in other but not HEAD → Other, stage for addition
@@ -22,5 +24,5 @@ public interface IMergeHandler {
                    Commit headCommit,
                    Commit givenCommit,
                    Commit splitPointCommit,
-                   Repository repository);
+                   Repository repository) throws IOException;
 }

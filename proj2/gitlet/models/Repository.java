@@ -345,7 +345,7 @@ public class Repository {
         return plainFilenamesIn(LOGS_DIR).stream().map(RepositoryHelper::getCommit).collect(Collectors.toList());
     }
 
-    public void merge(String givenBranchName) {
+    public void merge(String givenBranchName) throws IOException {
         if (!branchExists(givenBranchName)) {
             messageAndExit("A branch with that name does not exist.");
         } else if (givenBranchName.equals(currentBranch.getName())) {

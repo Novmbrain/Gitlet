@@ -4,7 +4,12 @@ package gitlet.models;
 import gitlet.utils.RepositoryHelper;
 import gitlet.utils.Utils;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static gitlet.utils.Constants.CWD;
 import static gitlet.utils.Constants.LOGS_DIR;
@@ -17,11 +22,6 @@ public class Commit extends GitletObject {
      * The message of this Commit.
      */
     private final String message;
-
-    public String getSha1Hash() {
-        return sha1Hash;
-    }
-
     /**
      * Time at which a commit is created. Assigned by the constructor
      */
@@ -41,6 +41,10 @@ public class Commit extends GitletObject {
         this.message = message;
         this.timeStamp = timeStamp;
         this.fileNameToBlobHash = new HashMap<>();
+    }
+
+    public String getSha1Hash() {
+        return sha1Hash;
     }
 
     public String getFirstParentHash() {
@@ -66,53 +70,48 @@ public class Commit extends GitletObject {
         return commit;
     }
 
+    public void persist() {
+        sha1Hash = this.sha1Hash();
+        RepositoryHelper.persistObject(sha1Hash, this);
+        // write the commit hash to the logs directory, concatenate the commit hash to the end of the file
+        writeContents(join(LOGS_DIR, sha1Hash), sha1Hash);
+    }
+
     @Override
     protected String sha1Hash() {
         return Utils.sha1(message, timeStamp.toString(), Utils.serialize(fileNameToBlobHash), firstParentHash);
     }
 
-    public void persist() {
-        sha1Hash = this.sha1Hash();
-        RepositoryHelper.persistObject(sha1Hash, this);
-        // write the commit hash to the logs directory, concatenate the commit hash to the end of the file
-        writeContents(join(LOGS_DIR, sha1Hash), sha1Hash );
+    public void updateIndex(StagingArea stagingArea) {
+        stagingArea.getStagedBlobs()
+            .forEach((fileName, blobHash) -> {
+                if (fileNameToBlobHash.containsKey(fileName)) {
+                    fileNameToBlobHash.replace(fileName, blobHash);
+                } else {
+                    fileNameToBlobHash.put(fileName, blobHash);
+                }
+            });
+
+        stagingArea.getRemovedBlobs()
+            .forEach(fileNameToBlobHash::remove);
     }
 
-    public void updateIndex(StagingArea stagingArea) {
-        stagingArea.getStagedBlobs().forEach((fileName, blobHash) -> {
-            if (fileNameToBlobHash.containsKey(fileName)) {
-                fileNameToBlobHash.replace(fileName, blobHash);
-            } else {
-                fileNameToBlobHash.put(fileName, blobHash);
-            }
-        });
-
-        stagingArea.getRemovedBlobs().forEach(fileNameToBlobHash::remove);
+    public Set<Commit> getParents() {
+        return Stream.of(getFirstParentCommit(), getSecondParentCommit())
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
     }
 
     public Commit getFirstParentCommit() {
-        if (isInitialCommit()) {
-            return null;
-        }
-
-        return RepositoryHelper.getCommit(firstParentHash);
-    }
-
-    public Set<Commit> getAllParents() {
-        Set<Commit> parents = new HashSet<>();
-        if (Objects.nonNull(getFirstParentCommit())) {
-            parents.add(getFirstParentCommit());
-        }
-
-        if (Objects.nonNull(getSecondParentCommit())) {
-            parents.add(getSecondParentCommit());
-        }
-
-        return parents;
+        return isInitialCommit() ? null : RepositoryHelper.getCommit(firstParentHash);
     }
 
     private Commit getSecondParentCommit() {
         return secondParentHash.isEmpty() ? null : RepositoryHelper.getCommit(secondParentHash);
+    }
+
+    public boolean isInitialCommit() {
+        return firstParentHash.isEmpty();
     }
 
     public boolean containsFile(String fileName) {
@@ -140,9 +139,9 @@ public class Commit extends GitletObject {
         return blob.getFileHash().equals(fileHash);
     }
 
-    public Blob getBlob(String fileName) {
-        String blobHash = fileNameToBlobHash.get(fileName);
-        return blobHash == null ? null : RepositoryHelper.getBlob(blobHash);
+    @Override
+    public int hashCode() {
+        return Objects.hash(message, timeStamp, fileNameToBlobHash, firstParentHash);
     }
 
     @Override
@@ -162,21 +161,8 @@ public class Commit extends GitletObject {
                 && Objects.equals(firstParentHash, commit.firstParentHash);
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(message, timeStamp, fileNameToBlobHash, firstParentHash);
-    }
-
-    public Set<String> getAllFiles() {
-        return this.fileNameToBlobHash.keySet();
-    }
-
     public boolean isMergeCommit() {
         return !secondParentHash.isEmpty();
-    }
-
-    public boolean isInitialCommit() {
-        return firstParentHash.isEmpty();
     }
 
     public String getSecondParentHash() {
@@ -188,9 +174,19 @@ public class Commit extends GitletObject {
     }
 
     public void restoreCommit() {
-        this.getAllFiles().forEach(fileName -> {
-            Blob blob = this.getBlob(fileName);
-            writeContents(join(CWD, fileName), blob.getContent());
-        });
+        this.getAllFiles()
+            .forEach(fileName -> {
+                Blob blob = this.getBlob(fileName);
+                writeContents(join(CWD, fileName), blob.getContent());
+            });
+    }
+
+    public Set<String> getAllFiles() {
+        return this.fileNameToBlobHash.keySet();
+    }
+
+    public Blob getBlob(String fileName) {
+        String blobHash = fileNameToBlobHash.get(fileName);
+        return blobHash == null ? null : RepositoryHelper.getBlob(blobHash);
     }
 }

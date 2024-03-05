@@ -19,9 +19,14 @@ public class Branch {
         this.name = name;
     }
 
-    public Branch(String name, String tipHash) {
+    public Branch(String name, Commit tipCommit) {
         this.name = name;
-        this.tipHash = tipHash;
+        this.tipHash = tipCommit.getSha1Hash();
+    }
+
+    public Branch(String name, String tipCommitHash) {
+        this.name = name;
+        this.tipHash = tipCommitHash;
     }
 
     public String getName() {

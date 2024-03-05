@@ -50,16 +50,6 @@ public class Repository {
         return new File(Head.getHeadCommitPath()).getName();
     }
 
-    private static List<IMergeHandler> getMergeHandlers() {
-        return List.of(new MergeHandler1(),
-            new MergeHandler2(),
-            new MergeHandler3(),
-            new MergeHandler4(),
-            new MergeHandler5(),
-            new MergeHandler6(),
-            new MergeHandler7());
-    }
-
     /**
      * Returns a list of the names of all plain files in the directory DIR, in
      * lexicographic order as Java Strings.  Returns null if DIR does
@@ -72,11 +62,23 @@ public class Repository {
     private static Set<String> getUntrackedFiles() {
         Set<String> committedFile = Head.getHeadCommit().getAllFiles();
 
-        return plainFilenamesIn(CWD).stream().
+        Set<String> untrackedFiles = plainFilenamesIn(CWD).stream().
             filter(fileName -> !stagingArea.stageForAdditionContains(fileName)
                 && !committedFile.contains(fileName)
                 || stagingArea.stageForRemovalContains(fileName)).
             collect(Collectors.toSet());
+
+        return untrackedFiles;
+    }
+
+    private static List<MergeHandler> getMergeHandlers() {
+        return List.of(new MergeHandler1(),
+            new MergeHandler2(),
+            new MergeHandler3(),
+            new MergeHandler4(),
+            new MergeHandler5(),
+            new MergeHandler6(),
+            new MergeHandler7());
     }
 
     private static Set<Commit> traverseCommitTree(Commit commit) {
@@ -87,7 +89,7 @@ public class Repository {
         while (!queue.isEmpty()) {
             Commit nextCommit = queue.poll();
             set.add(nextCommit);
-            nextCommit.getAllParents().stream().filter(Objects::nonNull).forEach(queue::offer);
+            nextCommit.getParents().stream().filter(Objects::nonNull).forEach(queue::offer);
         }
 
         return set;
@@ -95,6 +97,11 @@ public class Repository {
 
     public boolean gitletExists() {
         return GITLET_DIR.exists();
+    }
+
+    private Branch getCurrentBranch() {
+        String currentBranchTipCommitHash = readContentsAsString(new File(Head.getHeadCommitPath()));
+        return new Branch(getCurrentBranchName(), currentBranchTipCommitHash);
     }
 
     /**
@@ -129,9 +136,7 @@ public class Repository {
 
         // Create branch master
         REFS_HEADS_MASTER.createNewFile();
-        Branch master = new Branch(MASTER);
-        // pointer master to the first initialCommit,
-        master.setTipCommit(initialCommit);
+        Branch master = new Branch(MASTER, initialCommit);
         master.persist();
         currentBranch = master;
     }
@@ -180,17 +185,17 @@ public class Repository {
         }
     }
 
+    public void commit(String message) {
+        commitCheck(message);
+        doCommit(message);
+    }
+
     private void commitCheck(String message) {
         if (stagingArea.isEmpty()) {
             messageAndExit("No changes added to the commit.");
         } else if (message.isEmpty()) {
             messageAndExit("Please enter a commit message.");
         }
-    }
-
-    public void commit(String message) {
-        commitCheck(message);
-        doCommit(message);
     }
 
     private Commit doCommit(String message) {
@@ -211,6 +216,24 @@ public class Repository {
 
     public void log() {
         Stream.iterate(Head.getHeadCommit(), Objects::nonNull, Commit::getFirstParentCommit).forEach(this::logCommit);
+    }
+
+    private void logCommit(Commit commit) {
+        StringBuilder output = new StringBuilder();
+        Date date = commit.getTimeStamp();
+        String formattedDate = String.format("Date: %ta %tb %td %tT %tY %tz", date, date, date, date, date, date);
+
+        output.append("===\n" + "commit " + commit.getSha1Hash() + "\n");
+
+        if (commit.isMergeCommit()) {
+            output.append("Merge: "
+                + commit.getFirstParentHash().substring(0, 7)
+                + " " + commit.getSecondParentHash().substring(0, 7) + "\n");
+        }
+
+        output.append(formattedDate + "\n" + commit.getMessage() + "\n");
+
+        System.out.println(output);
     }
 
     public void status() {
@@ -257,40 +280,6 @@ public class Repository {
         }
     }
 
-    public void checkoutBranch(String branchName) {
-        if (!branchExists(branchName)) {
-            messageAndExit("No such branch exists.");
-        } else if (branchName.equals(currentBranch.getName())) {
-            messageAndExit("No need to checkout the current branch.");
-        } else {
-
-            Commit givenCommit = RepositoryHelper.getBranchTipCommit(branchName);
-
-            givenCommit.getAllFiles().stream().
-                filter(getUntrackedFiles()::contains).
-                findFirst().ifPresent(file
-                    -> messageAndExit("There is an untracked file in the way; delete it, or add and commit it first."));
-
-            Head.getHeadCommit().getAllFiles().forEach(fileName -> Utils.restrictedDelete(join(CWD, fileName)));
-
-            Head.update(givenCommit, branchName);
-
-            stagingArea.clearAllStagedBlobs();
-            stagingArea.removeAllMapping();
-
-            // overwrite the files in the working directory with the version in the newBranchTipCommit
-            givenCommit.restoreCommit();
-
-            Head.persist();
-            stagingArea.persist();
-        }
-    }
-
-    private Branch getCurrentBranch() {
-        String currentBranchTipCommitHash = readContentsAsString(new File(Head.getHeadCommitPath()));
-        return new Branch(getCurrentBranchName(), currentBranchTipCommitHash);
-    }
-
     public void rmBranch(String branchName) {
         if (!branchExists(branchName)) {
             messageAndExit("A branch with that name does not exist.");
@@ -306,22 +295,13 @@ public class Repository {
         getAllCommits().stream().sorted(Comparator.comparing(Commit::getTimeStamp).reversed()).forEach(this::logCommit);
     }
 
-    private void logCommit(Commit commit) {
-        StringBuilder output = new StringBuilder();
-        Date date = commit.getTimeStamp();
-        String formattedDate = String.format("Date: %ta %tb %td %tT %tY %tz", date, date, date, date, date, date);
-
-        output.append("===\n" + "commit " + commit.getSha1Hash() + "\n");
-
-        if (commit.isMergeCommit()) {
-            output.append("Merge: "
-                + commit.getFirstParentHash().substring(0, 7)
-                + " " + commit.getSecondParentHash().substring(0, 7) + "\n");
-        }
-
-        output.append(formattedDate + "\n" + commit.getMessage() + "\n");
-
-        System.out.println(output);
+    /**
+     * Get all the commits in the repository including the initial commit and the commit that is no longer reachable
+     *
+     * @return
+     */
+    private List<Commit> getAllCommits() {
+        return plainFilenamesIn(LOGS_DIR).stream().map(RepositoryHelper::getCommit).collect(Collectors.toList());
     }
 
     public void find(String commitMessage) {
@@ -335,14 +315,6 @@ public class Repository {
                 sorted(Comparator.comparing(Commit::getTimeStamp).reversed()).
                 forEach(commit -> System.out.println(commit.getSha1Hash()));
         }
-    }
-
-    /**
-     * Get all the commits in the repository including the initial commit and the commit that is no longer reachable
-     * @return
-     */
-    private List<Commit> getAllCommits() {
-        return plainFilenamesIn(LOGS_DIR).stream().map(RepositoryHelper::getCommit).collect(Collectors.toList());
     }
 
     public void merge(String givenBranchName) throws IOException {
@@ -376,7 +348,7 @@ public class Repository {
             }
 
             for (String fileName : allMergedFiles) {
-                for (IMergeHandler handler : getMergeHandlers()) {
+                for (MergeHandler handler : getMergeHandlers()) {
                     boolean handled = handler.handle(fileName, current, given, lastCommonAncestor, this);
                     if (handled) {
                         break;
@@ -398,6 +370,35 @@ public class Repository {
         commit1Ancestors.retainAll(commit2Ancestors);
 
         return commit1Ancestors.stream().max(Comparator.comparing(Commit::getTimeStamp)).orElse(null);
+    }
+
+    public void checkoutBranch(String branchName) {
+        if (!branchExists(branchName)) {
+            messageAndExit("No such branch exists.");
+        } else if (branchName.equals(currentBranch.getName())) {
+            messageAndExit("No need to checkout the current branch.");
+        } else {
+
+            Commit givenCommit = RepositoryHelper.getBranchTipCommit(branchName);
+
+            givenCommit.getAllFiles().stream().
+                filter(getUntrackedFiles()::contains).
+                findFirst().ifPresent(file
+                    -> messageAndExit("There is an untracked file in the way; delete it, or add and commit it first."));
+
+            Head.getHeadCommit().getAllFiles().forEach(fileName -> Utils.restrictedDelete(join(CWD, fileName)));
+
+            Head.update(givenCommit, branchName);
+
+            stagingArea.clearAllStagedBlobs();
+            stagingArea.removeAllMapping();
+
+            // overwrite the files in the working directory with the version in the newBranchTipCommit
+            givenCommit.restoreCommit();
+
+            Head.persist();
+            stagingArea.persist();
+        }
     }
 
     public void branch(String branchName) throws IOException {
@@ -501,32 +502,40 @@ public class Repository {
             Set<String> files = new HashSet<>();
 
             output.append("=== Modifications Not Staged For Commit ===\n");
+
             // Staged for addition, but with different contents than in the working directory
-            allFilesInCWD.stream().
-                filter(fileName -> stagedForAdditionFiles.contains(fileName)).
-                filter(fileName -> !stagingArea.getStagedBlob(fileName).getFileHash().
-                    equals(Utils.sha1(fileName, readFileFromRepositoryAsString(fileName)))).
-                forEach(files::add);
-
-
+            files.addAll(getModifiedStagedFiles());
             // Tracked in the current commit, changed in the working directory, but not staged
-            // Not staged for removal, but tracked in the current commit and deleted from the working directory.
-            committedFiles.stream().
-                filter(fileName -> !stagedForAdditionFiles.contains(fileName)
-                    && !stagedForRemovalFiles.contains(fileName)).
-                filter(fileName -> !allFilesInCWD.contains(fileName)
-                    || !Head.getHeadCommit().isFileInRepoEqual(fileName)).
-                forEach(files::add);
-
-            // - Staged for addition, but deleted in the working directory
-            stagedForAdditionFiles.stream().
-                filter(fileName -> !allFilesInCWD.contains(fileName)).
-                forEach(files::add);
+            files.addAll(getModifiedUnstagedFiles());
+            // Staged for addition, but deleted in the working directory
+            files.addAll(getDeletedStagedFiles());
 
             files.forEach(fileName -> output.append(fileName).append("\n"));
             output.append("\n");
 
             return output.toString();
+        }
+
+        private Set<String> getModifiedStagedFiles() {
+            return allFilesInCWD.stream()
+                .filter(fileName -> stagedForAdditionFiles.contains(fileName))
+                .filter(fileName -> !stagingArea.getStagedBlob(fileName).getFileHash()
+                    .equals(Utils.sha1(fileName, readFileFromRepositoryAsString(fileName))))
+                .collect(Collectors.toSet());
+        }
+
+        private Set<String> getModifiedUnstagedFiles() {
+            return committedFiles.stream()
+                .filter(fileName -> !stagedForAdditionFiles.contains(fileName) && !stagedForRemovalFiles.contains(fileName))
+                .filter(fileName -> !allFilesInCWD.contains(fileName) || !Head.getHeadCommit()
+                    .isFileInRepoEqual(fileName))
+                .collect(Collectors.toSet());
+        }
+
+        private Set<String> getDeletedStagedFiles() {
+            return stagedForAdditionFiles.stream()
+                .filter(fileName -> !allFilesInCWD.contains(fileName))
+                .collect(Collectors.toSet());
         }
 
         private String generateUntrackedFilesSection() {

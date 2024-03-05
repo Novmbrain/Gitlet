@@ -21,7 +21,7 @@ import static gitlet.utils.Utils.writeContents;
  * @author: Wenjie FU
  * @date: 15/02/2024
  **/
-public class MergeHandler7 implements IMergeHandler {
+public class MergeHandler7 implements MergeHandler {
     @Override
     public boolean handle(String fileName,
                           Commit headCommit,

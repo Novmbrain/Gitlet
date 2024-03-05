@@ -19,7 +19,7 @@ import java.io.IOException;
  * @author: Wenjie FU
  * @date: 15/02/2024
  **/
-public interface IMergeHandler {
+public interface MergeHandler {
     boolean handle(String fileName,
                    Commit headCommit,
                    Commit givenCommit,
